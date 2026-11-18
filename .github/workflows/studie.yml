@@ -25,7 +25,14 @@ jobs:
         run: pip install -e ".[dev]"
       - name: Tests
         run: pytest -q
+      - name: Verbindung zu data.wien.gv.at prüfen
+        continue-on-error: true
+        run: |
+          curl -sS -m 20 -o /dev/null -w "data.wien.gv.at WFS: %{http_code} %{time_total}s\n" "https://data.wien.gv.at/daten/geo?service=WFS&request=GetCapabilities&version=1.1.0" || true
+          curl -sS -m 20 -A "Mozilla/5.0" -o /dev/null -w "mit Browser-Kennung: %{http_code}\n" "https://data.wien.gv.at/daten/geo?service=WFS&request=GetCapabilities&version=1.1.0" || true
+          curl -sS -m 20 -o /dev/null -w "www.wien.gv.at: %{http_code}\n" "https://www.wien.gv.at/" || true
       - name: Erkundung der Stadt-Wien-Daten
+        timeout-minutes: 8
         run: python scripts/erkunden.py "$ADRESSE" ergebnis/erkundung
       - name: Ergebnis hochladen
         if: always()

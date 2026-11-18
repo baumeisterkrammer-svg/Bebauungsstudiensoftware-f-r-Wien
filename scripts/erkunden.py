@@ -19,10 +19,24 @@ STICHWORTE = ("WIDMUNG", "BEBAU", "FLWB", "FLUCHT", "PLAN", "GRUND", "KATAST",
               "HOEHE", "BAUKLASSE", "STELLPLATZ", "PARKPICKERL", "REALNUT")
 
 
+class Protokoll(list):
+    """Liste, die jede Zeile sofort ausgibt (sichtbar auch bei Abbruch)."""
+
+    def append(self, x):
+        print(x, flush=True)
+        super().append(x)
+
+    def __iadd__(self, xs):
+        for x in xs:
+            self.append(x)
+        return self
+
+
 def main(adresse: str, ordner: str) -> None:
     out = Path(ordner)
     (out / "roh").mkdir(parents=True, exist_ok=True)
-    zeilen = [f"# Erkundung für {adresse}", ""]
+    zeilen = Protokoll()
+    zeilen += [f"# Erkundung für {adresse}", ""]
 
     protokoll: list[str] = []
     treffer = wien.suche_adresse(adresse, protokoll)
@@ -70,7 +84,6 @@ def main(adresse: str, ordner: str) -> None:
         except Exception as e:  # weiter mit dem nächsten Layer
             zeilen.append(f"| {name} | {titel} | Fehler | {type(e).__name__}: {e} |")
     (out / "uebersicht.md").write_text("\n".join(zeilen), encoding="utf-8")
-    print("\n".join(zeilen))
 
 
 if __name__ == "__main__":

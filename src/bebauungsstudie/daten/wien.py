@@ -19,7 +19,7 @@ CRS = "EPSG:31256"  # MGI / Austria GK East, Meter
 USER_AGENT = "bebauungsstudie/0.1"
 
 
-def _hole(url: str, params: dict, timeout: float = 60) -> bytes:
+def _hole(url: str, params: dict, timeout: float = 20) -> bytes:
     voll = f"{url}?{urllib.parse.urlencode(params)}"
     req = urllib.request.Request(voll, headers={"User-Agent": USER_AGENT})
     with urllib.request.urlopen(req, timeout=timeout) as r:
