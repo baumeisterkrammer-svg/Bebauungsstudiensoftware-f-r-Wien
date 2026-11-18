@@ -84,9 +84,9 @@ def layer_liste() -> list[tuple[str, str]]:
     xml = _hole(WFS, {"service": "WFS", "request": "GetCapabilities",
                       "version": "1.1.0"}).decode("utf-8", "replace")
     out = []
-    for block in re.findall(r"<(?:wfs:)?FeatureType>(.*?)</(?:wfs:)?FeatureType>", xml, re.S):
-        name = re.search(r"<(?:wfs:)?Name>(.*?)</", block)
-        titel = re.search(r"<(?:wfs:)?Title>(.*?)</", block)
+    for block in re.findall(r"<(?:\w+:)?FeatureType\b[^>]*>(.*?)</(?:\w+:)?FeatureType>", xml, re.S):
+        name = re.search(r"<(?:\w+:)?Name>(.*?)</", block)
+        titel = re.search(r"<(?:\w+:)?Title>(.*?)</", block)
         if name:
             out.append((name.group(1), titel.group(1) if titel else ""))
     return out
