@@ -68,6 +68,21 @@ def main(adresse: str, ordner: str) -> None:
             layer.append((vermutet, "(vermutet)"))
     (out / "roh" / "layer.json").write_text(json.dumps(layer, ensure_ascii=False, indent=1))
     zeilen.append(f"{len(layer)} WFS-Layer insgesamt.\n")
+    # WMS und Plan-Viewer: wo liegen die detaillierten Bebauungsbestimmungen?
+    import re as _re
+    for url, params in (
+        ("https://data.wien.gv.at/daten/wms", {"service": "WMS", "request": "GetCapabilities", "version": "1.3.0"}),
+        ("https://data.wien.gv.at/daten/geo", {"service": "WMS", "request": "GetCapabilities", "version": "1.3.0"}),
+        ("https://www.wien.gv.at/flaechenwidmung/public/", {}),
+        ("https://www.wien.gv.at/flaechenwidmung/public/start.aspx", {}),
+    ):
+        try:
+            text = wien._hole(url, params).decode("utf-8", "replace")
+            namen = sorted(set(_re.findall(r"<Name>([^<]*(?:WIDM|FLW|BEBAU|FLUCHT|PLAN)[^<]*)</Name>", text, _re.I)))
+            links = sorted(set(_re.findall(r"https?://[^\s\"'<>]+(?:MapServer|WMS|wms|wfs|WFS|rest|ows|geoserver)[^\s\"'<>]*", text)))[:20]
+            zeilen.append(f"QUELLE {url}: {len(text)} Zeichen; Layer: {namen[:40]}; Dienste: {links}")
+        except Exception as e:
+            zeilen.append(f"QUELLE {url}: {type(e).__name__}: {e}")
     zeilen.append("ALLE: " + " ; ".join(f"{n.split(':')[-1]}={ti}" for n, ti in layer))
     for detail in ("ogdwien:GENFLWIDMUNGOGD", "ogdwien:STELLPLATZVERPFLOGD",
                    "ogdwien:GEBAEUDEINFOOGD", "ogdwien:FMZKBKMOGD"):
