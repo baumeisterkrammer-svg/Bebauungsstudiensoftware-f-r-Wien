@@ -1,14 +1,41 @@
 name: Bebauungsstudie
 
+# Starten: GitHub → Actions → "Bebauungsstudie" → "Run workflow", Adresse eintragen.
+# Ergebnis: im Lauf unter "Artifacts" als ZIP (Bericht, Pläne als PDF/PNG, IFC, DXF)
+# und im Branch "ergebnisse".
+
 on:
   workflow_dispatch:
     inputs:
       adresse:
-        description: "Adresse in Wien, z. B. Olbrichgasse 9, 1120 Wien"
+        description: "Adresse in Wien"
         required: true
         default: "Olbrichgasse 9, 1120 Wien"
+      breite:
+        description: "Grundstücksbreite an der Straße in m"
+        default: "20"
+      tiefe:
+        description: "Grundstückstiefe in m"
+        default: "40"
+      bauweise:
+        description: "Bauweise laut Plandokument (o, gk, ogk, gr, g)"
+        default: "o"
+      strassenbreite:
+        description: "Abstand der Fluchtlinien in m (leer = unbekannt)"
+        default: ""
+      erkunden:
+        description: "Zusätzlich alle Stadt-Wien-Layer erkunden"
+        type: boolean
+        default: false
   push:
     branches: ["claude/**"]
+
+permissions:
+  contents: write
+
+concurrency:
+  group: studie-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   studie:
@@ -16,6 +43,10 @@ jobs:
     timeout-minutes: 20
     env:
       ADRESSE: ${{ github.event.inputs.adresse || 'Olbrichgasse 9, 1120 Wien' }}
+      BREITE: ${{ github.event.inputs.breite || '20' }}
+      TIEFE: ${{ github.event.inputs.tiefe || '40' }}
+      BAUWEISE: ${{ github.event.inputs.bauweise || 'o' }}
+      STRASSENBREITE: ${{ github.event.inputs.strassenbreite }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -25,18 +56,30 @@ jobs:
         run: pip install -e ".[dev]"
       - name: Tests
         run: pytest -q
-      - name: Verbindung zu data.wien.gv.at prüfen
-        continue-on-error: true
+      - name: Studie rechnen
+        timeout-minutes: 8
         run: |
-          curl -sS -m 20 -o /dev/null -w "data.wien.gv.at WFS: %{http_code} %{time_total}s\n" "https://data.wien.gv.at/daten/geo?service=WFS&request=GetCapabilities&version=1.1.0" || true
-          curl -sS -m 20 -A "Mozilla/5.0" -o /dev/null -w "mit Browser-Kennung: %{http_code}\n" "https://data.wien.gv.at/daten/geo?service=WFS&request=GetCapabilities&version=1.1.0" || true
-          curl -sS -m 20 -o /dev/null -w "www.wien.gv.at: %{http_code}\n" "https://www.wien.gv.at/" || true
-      - name: Erkundung der Stadt-Wien-Daten
+          ARGS="--breite $BREITE --tiefe $TIEFE --bauweise $BAUWEISE"
+          if [ -n "$STRASSENBREITE" ]; then ARGS="$ARGS --strassenbreite $STRASSENBREITE"; fi
+          python scripts/studie_adresse.py "$ADRESSE" ergebnis/studie $ARGS
+          cat ergebnis/studie/ergebnis.md >> "$GITHUB_STEP_SUMMARY"
+      - name: Erkundung aller Layer
+        if: ${{ github.event.inputs.erkunden == 'true' }}
         timeout-minutes: 8
         run: python scripts/erkunden.py "$ADRESSE" ergebnis/erkundung
-      - name: Ergebnis hochladen
+      - name: Ergebnis als Download
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: bebauungsstudie
           path: ergebnis/
+      - name: Ergebnis im Branch "ergebnisse" ablegen
+        if: success()
+        run: |
+          ZIEL=$(echo "$ADRESSE" | iconv -t ascii//TRANSLIT | tr -cs 'A-Za-z0-9' '-' | sed 's/-$//')
+          git config user.name "github-actions"
+          git config user.email "github-actions@users.noreply.github.com"
+          git fetch origin ergebnisse || true
+          git worktree add -B ergebnisse /tmp/erg origin/ergebnisse 2>/dev/null || git worktree add --orphan -b ergebnisse /tmp/erg
+          rm -rf "/tmp/erg/$ZIEL" && mkdir -p "/tmp/erg/$ZIEL" && cp -r ergebnis/studie/. "/tmp/erg/$ZIEL/"
+          cd /tmp/erg && git add -A && git commit -m "Studie $ADRESSE" && git push origin ergebnisse || echo "keine Änderung"
