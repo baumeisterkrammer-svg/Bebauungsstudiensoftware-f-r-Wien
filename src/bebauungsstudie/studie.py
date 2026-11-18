@@ -134,7 +134,7 @@ def erstelle_studie(bp: Bauplatz, annahmen: Annahmen | None = None) -> Studie:
 
     bauplatz_m2 = bp.polygon.area
     w["Bauplatzfläche m²"] = Ergebnis(
-        round(bauplatz_m2, 1), (Quelle("Kataster", "Grundstücksgrenzen"),), "aus Geometrie"
+        round(bauplatz_m2, 1), (Quelle("Eingabe", "Grundstücksgeometrie"),), "aus Geometrie"
     )
 
     flaeche = grundriss.area

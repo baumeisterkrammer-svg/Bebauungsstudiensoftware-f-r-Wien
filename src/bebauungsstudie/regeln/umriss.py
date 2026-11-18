@@ -65,7 +65,7 @@ def dachgeschosse(
     z = 0.0
     while z + lichte_hoehe <= max_dach + 1e-9:
         b = trakttiefe - 2 * (z + lichte_hoehe) / tan
-        if b < mindestbreite:
+        if b < mindestbreite - 1e-6:
             break
         breiten.append(round(b, 2))
         z += geschosshoehe
