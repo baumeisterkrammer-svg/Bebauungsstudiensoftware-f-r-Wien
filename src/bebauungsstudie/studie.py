@@ -181,7 +181,12 @@ def erstelle_studie(bp: Bauplatz, annahmen: Annahmen | None = None) -> Studie:
     dg = umriss.dachgeschosse(
         trakt, winkel.wert, dach.wert + rest, a.geschosshoehe
     )
-    dg_flaechen = [flaeche * b / trakt for b in dg.wert]
+    # Umriss steigt von allen Fronten an: Dachgeschoß = Grundriss, allseitig eingerückt
+    anteil = flaeche / grundriss.area
+    dg_flaechen = [
+        grundriss.buffer(-(trakt - b) / 2, join_style="mitre").area * anteil
+        for b in dg.wert
+    ]
     w["Dachgeschoße"] = dg
 
     bgf = flaeche * geschosse + sum(dg_flaechen)

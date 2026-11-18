@@ -21,6 +21,9 @@ Konzept: [Konzept: Automatisierte Bebauungsstudien Wien](https://claude.ai/artif
 | Pflichtstellplätze, Stellplatzregulativ | WGarG §§ 48, 50 | umgesetzt |
 | Eckregel | BO § 75 Abs. 5 | offen |
 | gekuppelte und Gruppenbauweise | BO § 76 | konservativ wie offen |
+| BIM-Modell (IFC4: Geschoße, Decken, Außenwände, Räume mit BGF) | | umgesetzt |
+| Pläne: Lageplan/Grundriss, Schnitt, Ansicht, Axonometrie (PDF, PNG) | | umgesetzt, schematisch |
+| DXF für CAD (Layer je Bauteil) | | umgesetzt |
 | Datenimport Stadt Wien (OGD) und Kataster | | offen |
 | Besondere Bestimmungen aus Plandokumenten | | offen |
 | OIB-Richtlinien (Gebäudeklasse, Stiegenhäuser) | | offen |
@@ -34,13 +37,15 @@ produktiven Einsatz fachlich gegengelesen werden.
 python -m venv .venv && source .venv/bin/activate
 pip install -e ".[dev]"
 pytest
-python beispiele/beispiel.py
+python beispiele/beispiel.py   # schreibt Bericht, PDF, PNG, IFC und DXF nach ./ausgabe
 ```
 
 ## Aufbau
 
 - `src/bebauungsstudie/regeln/`: je Paragraph ein Modul
 - `src/bebauungsstudie/studie.py`: Hüllkörper und Kennzahlen für einen Bauplatz
+- `src/bebauungsstudie/modell.py`: Massenmodell (Geschoße, Hüllkörper), Grundlage aller Ausgaben
+- `src/bebauungsstudie/ausgabe/`: IFC, Pläne, DXF
 - `src/bebauungsstudie/herleitung.py`: Ergebnis mit Quelle und Begründung
 - `tests/`: Testfälle je Regel
 
