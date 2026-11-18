@@ -68,6 +68,17 @@ def main(adresse: str, ordner: str) -> None:
             layer.append((vermutet, "(vermutet)"))
     (out / "roh" / "layer.json").write_text(json.dumps(layer, ensure_ascii=False, indent=1))
     zeilen.append(f"{len(layer)} WFS-Layer insgesamt.\n")
+    zeilen.append("ALLE: " + " ; ".join(f"{n.split(':')[-1]}={ti}" for n, ti in layer))
+    for detail in ("ogdwien:GENFLWIDMUNGOGD", "ogdwien:STELLPLATZVERPFLOGD",
+                   "ogdwien:GEBAEUDEINFOOGD", "ogdwien:FMZKBKMOGD"):
+        try:
+            gj = wien.features(detail, t.x, t.y, radius=15)
+            for f in gj.get("features", [])[:4]:
+                g = f.get("geometry") or {}
+                zeilen.append(f"DETAIL {detail}: {g.get('type')} "
+                              + json.dumps(f.get("properties", {}), ensure_ascii=False)[:900])
+        except Exception as e:
+            zeilen.append(f"DETAIL {detail}: {type(e).__name__}: {e}")
     passend = [(n, ti) for n, ti in layer
                if any(s in (n + " " + ti).upper() for s in STICHWORTE)]
     zeilen.append("| Layer | Titel | Features | Attribute (erstes Feature) |")
