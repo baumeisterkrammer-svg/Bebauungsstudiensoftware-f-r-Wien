@@ -21,7 +21,9 @@ def main(adresse: str, ordner: str) -> None:
     (out / "roh").mkdir(parents=True, exist_ok=True)
     zeilen = [f"# Erkundung für {adresse}", ""]
 
-    treffer = wien.suche_adresse(adresse)
+    protokoll: list[str] = []
+    treffer = wien.suche_adresse(adresse, protokoll)
+    zeilen += protokoll + [""]
     (out / "roh" / "adresse.json").write_text(
         json.dumps([t.roh for t in treffer], ensure_ascii=False, indent=1))
     if not treffer:

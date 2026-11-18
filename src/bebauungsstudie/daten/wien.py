@@ -34,8 +34,7 @@ class Adresstreffer:
     roh: dict
 
 
-def suche_adresse(adresse: str) -> list[Adresstreffer]:
-    """Adresse in Koordinaten (EPSG:31256) umwandeln."""
+def _wien_adresse(adresse: str) -> list[Adresstreffer]:
     daten = json.loads(_hole(ADRESSE, {"Address": adresse, "crs": CRS}))
     treffer = []
     for f in daten.get("features", []):
@@ -44,6 +43,40 @@ def suche_adresse(adresse: str) -> list[Adresstreffer]:
         text = props.get("Adresse") or props.get("Address") or adresse
         treffer.append(Adresstreffer(str(text), float(x), float(y), f))
     return treffer
+
+
+def _osm_adresse(adresse: str) -> list[Adresstreffer]:
+    """Ersatz: OpenStreetMap Nominatim, Ergebnis nach EPSG:31256 umgerechnet."""
+    from pyproj import Transformer
+
+    daten = json.loads(_hole("https://nominatim.openstreetmap.org/search",
+                             {"q": adresse, "format": "json", "limit": "3",
+                              "countrycodes": "at"}))
+    tr = Transformer.from_crs("EPSG:4326", CRS, always_xy=True)
+    treffer = []
+    for d in daten:
+        x, y = tr.transform(float(d["lon"]), float(d["lat"]))
+        treffer.append(Adresstreffer(d.get("display_name", adresse), x, y, d))
+    return treffer
+
+
+def suche_adresse(adresse: str, protokoll: list[str] | None = None) -> list[Adresstreffer]:
+    """Adresse in Koordinaten (EPSG:31256) umwandeln.
+
+    Zuerst der Adressdienst der Stadt Wien, bei Fehler OpenStreetMap.
+    """
+    for name, fn in (("Stadt Wien", _wien_adresse), ("OpenStreetMap", _osm_adresse)):
+        try:
+            treffer = fn(adresse)
+        except Exception as e:  # nächsten Dienst versuchen
+            if protokoll is not None:
+                protokoll.append(f"Adresssuche {name}: {type(e).__name__}: {e}")
+            continue
+        if treffer:
+            if protokoll is not None:
+                protokoll.append(f"Adresssuche {name}: {len(treffer)} Treffer")
+            return treffer
+    return []
 
 
 def layer_liste() -> list[tuple[str, str]]:
