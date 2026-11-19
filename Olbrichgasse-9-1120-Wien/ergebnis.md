@@ -15,10 +15,10 @@ Vorabschätzung, keine Rechtsauskunft. Datenquellen: Stadt Wien – data.wien.gv
 ## Eingaben und Annahmen (im Plandokument nur als Bild, bitte prüfen)
 
 - Grundstück: KG 01304, Grundstück 453/47, 453/16: 692 m² laut BEV-Katastralmappe (Stichtag 01.10.2026), Straßenkanten [0, 3, 4]
-- Bauweise: o (Annahme, im Plandokument prüfen)
+- Bauweise: o (aus der Planbeschriftung gelesen, bitte prüfen)
 - Festgesetzte Gebäudehöhe: keine erkannt (Höhe nach Bauklasse)
 - Abstand der Fluchtlinien (Straßenbreite): 12.0 m (aus dem Planbild gemessen, schmalste angrenzende Straße)
-- Bebaubare Fläche: pauschal mit Vorgarten 5 m gerechnet
+- Bebaubare Fläche: innerhalb der aus dem Planbild erkannten Baufluchtlinien (bitte prüfen)
 - Besondere Bestimmungen des Plandokuments: nicht berücksichtigt
 
 ## Protokoll
@@ -36,12 +36,12 @@ Vorabschätzung, keine Rechtsauskunft. Datenquellen: Stadt Wien – data.wien.gv
 - Kataster: Nutzung Gebäude 111 m², Garten 580 m²; Straßenkanten [0, 3, 4]; Nachbargrundstücke 453/15 (883 m²), 453/17 (544 m²)
 - Fluchtlinien-Bild: 768×768 px, 0.20 m/px, rote Pixel 4.4%
 - Linien 3.7%, Schrift 0.7% der Bildfläche
-- Baufluchtlinien: keine geschlossene Fläche am Grundstück erkannt
+- Baufluchtlinien: geschlossene Fläche 1048 m² erkannt, davon 272 m² im Grundstück
 - Straßenkante 0: Abstand der Baulinien ca. 24.5 m (Messungen 24.3, 24.3, 24.3, 24.2, 24.2)
 - Straßenkante 3: Abstand der Baulinien ca. 12.0 m (Messungen 12.0, 12.0, 3.7, 3.6, 12.1)
 - Straßenkante 4: Abstand der Baulinien ca. 12.0 m (Messungen 11.9, 11.9, 11.9, 12.0, 11.8)
 - Planbeschriftung: &, &%, (Ten, 00, 02, 12, 19, 2, 20, 4, 45, 46, 5m, 65, 9, <0, =, >, ?, Fo, Go, J, NN, ON, Oo, Oz, PAG, Ss, W, Ww, WwW, YB, \, eo, iv, m, o, oe, ol, se
-- keine Bauweisen-Beschriftung im Umkreis erkannt
+- Bauweise „o“ aus der Planbeschriftung gelesen (57 m vom Grundstück, innerhalb derselben Baufluchtlinien)
 - Bebauungsplan: Ausschnitt als Bild beigelegt
 
 ## Ergebnis
@@ -50,17 +50,17 @@ Vorabschätzung, keine Rechtsauskunft. Datenquellen: Stadt Wien – data.wien.gv
 Bebauungsstudie (Vorabschätzung, keine Rechtsauskunft)
 
 Bauplatzfläche m²: 691.5  [Eingabe Grundstücksgeometrie]  aus Geometrie
-Bebaute Fläche m²: 227.0  [BO für Wien § 79 Abs. 1, 3]  Bauplatz abzüglich Vorgarten und Abstandsflächen
+Bebaute Fläche m²: 183.3  [BO für Wien § 79 Abs. 1, 3, Bebauungsplan Baufluchtlinien (§ 5 Abs. 4 BO)]  innerhalb der Baufluchtlinien laut Bebauungsplan, abzüglich Abstandsflächen
 Gebäudehöhe m: 9.0  [BO für Wien § 75 Abs. 2, BO für Wien § 75 Abs. 4]  maßgeblich: Bauklasse I mit 9.0 m
 Vollgeschoße: 3  [BO für Wien § 75 Abs. 2, BO für Wien § 75 Abs. 4]  9.0 m / 3.0 m Geschoßhöhe (Annahme), abgerundet
-Dachgeschoße: [9.51]  [BO für Wien § 81 Abs. 1, 4]  Trakttiefe 14.50511813816714 m, Umriss 45.0°, bis 4.5 m über GH: 1 Dachgeschoß(e)
-BGF m²: 774.8  [BO für Wien § 75 Abs. 2, BO für Wien § 75 Abs. 4, BO für Wien § 81 Abs. 4, BO für Wien § 81 Abs. 1]  227.0 m² × 3 Vollgeschoße + 93.9 m² Dachgeschoße
-Nutzfläche m²: 581.1  [Annahme Nutzflächenfaktor]  BGF × 0.75
-Wohnungen: 8  [Annahme Wohnungsgröße]  581 m² / 65.0 m² je Wohnung
-Pflichtstellplätze: 5  [WGarG 2008 § 50]  581 m² WNF / 100 = 5 Regelbedarf, × 100 % = 5
-Freifläche m²: 464.6  [BO für Wien § 79]  Bauplatz minus bebaute Fläche
-davon unversiegelt mind. m²: 309.7  [BO für Wien § 79 Abs. 6]  2/3 von 464.6 m² = 309.7 m²
-Bäume: 3  [BO für Wien § 79 Abs. 7]  464.6 m² / 200 m², aufgerundet = 3
+Dachgeschoße: [9.44]  [BO für Wien § 81 Abs. 1, 4]  Trakttiefe 14.444449427536313 m, Umriss 45.0°, bis 4.5 m über GH: 1 Dachgeschoß(e)
+BGF m²: 622.6  [BO für Wien § 75 Abs. 2, BO für Wien § 75 Abs. 4, BO für Wien § 81 Abs. 4, BO für Wien § 81 Abs. 1]  183.3 m² × 3 Vollgeschoße + 72.7 m² Dachgeschoße
+Nutzfläche m²: 466.9  [Annahme Nutzflächenfaktor]  BGF × 0.75
+Wohnungen: 7  [Annahme Wohnungsgröße]  467 m² / 65.0 m² je Wohnung
+Pflichtstellplätze: 4  [WGarG 2008 § 50]  467 m² WNF / 100 = 4 Regelbedarf, × 100 % = 4
+Freifläche m²: 508.2  [BO für Wien § 79]  Bauplatz minus bebaute Fläche
+davon unversiegelt mind. m²: 338.8  [BO für Wien § 79 Abs. 6]  2/3 von 508.2 m² = 338.8 m²
+Bäume: 3  [BO für Wien § 79 Abs. 7]  508.2 m² / 200 m², aufgerundet = 3
 
 Hinweise:
 - Stellplatzzone 2: mögliche Reduktion der Pflichtstellplätze nach WGarG § 50a ist noch nicht eingerechnet.
