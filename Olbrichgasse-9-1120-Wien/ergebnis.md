@@ -15,7 +15,7 @@ Vorabschätzung, keine Rechtsauskunft. Datenquellen: Stadt Wien – data.wien.gv
 ## Eingaben und Annahmen (im Plandokument nur als Bild, bitte prüfen)
 
 - Grundstück: KG 01304, Grundstück 453/47, 453/16: 692 m² laut BEV-Katastralmappe (Stichtag 01.10.2026), Straßenkanten [0, 3, 4]
-- Bauweise: o (Annahme, im Plandokument prüfen)
+- Bauweise: o (aus der Planbeschriftung gelesen, bitte prüfen)
 - Abstand der Fluchtlinien (Straßenbreite): 12.0 m (aus dem Planbild gemessen, schmalste angrenzende Straße)
 - Bebaubare Fläche: innerhalb der aus dem Planbild erkannten Baufluchtlinien (bitte prüfen)
 - Besondere Bestimmungen des Plandokuments: nicht berücksichtigt
@@ -39,7 +39,7 @@ Vorabschätzung, keine Rechtsauskunft. Datenquellen: Stadt Wien – data.wien.gv
 - Straßenkante 3: Abstand der Baulinien ca. 12.0 m (Messungen 12.0, 12.0, 3.7, 3.6, 12.1)
 - Straßenkante 4: Abstand der Baulinien ca. 12.0 m (Messungen 11.9, 11.9, 11.9, 12.0, 11.8)
 - Planbeschriftung: &, ,, 02, 1, 16, 2, 20, 45,, 6, 6.8m, 7, 9, >, @, De,, KK, OZ, TH, W,, Wi, Wy, \, g, naw, o, ov, we, wn, x,, |, ©, °, —, ‘, ‘cam
-- keine Bauweisen-Beschriftung im Umkreis erkannt
+- Bauweise „o“ aus der Planbeschriftung gelesen (38 m vom Grundstück, innerhalb derselben Baufluchtlinien)
 - Bebauungsplan: Ausschnitt als Bild beigelegt
 
 ## Ergebnis
