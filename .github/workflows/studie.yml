@@ -68,6 +68,11 @@ jobs:
         timeout-minutes: 6
         continue-on-error: true
         run: python scripts/kataster_erkunden.py
+      - name: Erkundung Bebauungsplan-Quellen
+        if: ${{ github.event_name == 'push' }}
+        timeout-minutes: 5
+        continue-on-error: true
+        run: python scripts/bplan_erkunden.py
       - name: Erkundung aller Layer
         if: ${{ github.event.inputs.erkunden == 'true' }}
         timeout-minutes: 8
