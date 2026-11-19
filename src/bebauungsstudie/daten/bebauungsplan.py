@@ -270,30 +270,39 @@ def fluchtlinien_auswerten(bild: np.ndarray, ext, umriss, strassenkanten,
     scheibe = (xx * xx + yy * yy) <= rad * rad
     # Linien um die halbe Lückenbreite verdicken; die gefundenen Flächen werden
     # danach um dasselbe Maß wieder vergrößert
-    linien, _schrift = trenne_linien_schrift(rot, px, py)
-    log.append(f"Linien {linien.mean():.1%}, Schrift {_schrift.mean():.1%} der Bildfläche")
-    zu = ndimage.binary_dilation(linien, structure=scheibe)
-    lab, anzahl = ndimage.label(~zu)
-    rand = set(np.unique(np.concatenate([lab[0], lab[-1], lab[:, 0], lab[:, -1]]))) - {0}
+    linien_ohne_schrift, _schrift = trenne_linien_schrift(rot, px, py)
+    log.append(f"Linien {linien_ohne_schrift.mean():.1%}, Schrift {_schrift.mean():.1%} der Bildfläche")
 
     cols, rows = np.meshgrid(np.arange(w), np.arange(h))
     gx, gy = welt(cols, rows)
     im_gst = MPath(list(umriss)).contains_points(np.c_[gx.ravel(), gy.ravel()]).reshape(h, w)
     gst_flaeche = SPolygon(umriss).area
     pix = px * py
-    beste, beste_ueb = None, 0.0
-    for k in range(1, anzahl + 1):
-        if k in rand:
-            continue
-        maske = lab == k
-        flaeche = maske.sum() * pix
-        ueb = (maske & im_gst).sum() * pix
-        if ueb > beste_ueb and 5 < flaeche < 3 * gst_flaeche + 3000:
-            beste, beste_ueb = k, ueb
+
+    def beste_flaeche(maske_linien):
+        zu = ndimage.binary_dilation(maske_linien, structure=scheibe)
+        lab, anzahl = ndimage.label(~zu)
+        rand = set(np.unique(np.concatenate([lab[0], lab[-1], lab[:, 0], lab[:, -1]]))) - {0}
+        beste, beste_ueb = None, 0.0
+        for k in range(1, anzahl + 1):
+            if k in rand:
+                continue
+            maske = lab == k
+            flaeche = maske.sum() * pix
+            ueb = (maske & im_gst).sum() * pix
+            if ueb > beste_ueb and 5 < flaeche < 3 * gst_flaeche + 3000:
+                beste, beste_ueb = k, ueb
+        return (lab == beste) if beste is not None else None, beste_ueb
+
+    # Zwei Varianten: alle roten Teile als Linien (Schrift kann Flächen teilen)
+    # und ohne Schrift (Strichecken können als Schrift gelten und Lücken öffnen).
+    # Genommen wird die Variante mit der größeren Überdeckung des Grundstücks.
+    varianten = [beste_flaeche(rot), beste_flaeche(linien_ohne_schrift)]
+    maske, ueb = max(varianten, key=lambda v: v[1])
     flaeche_pts = None
-    if beste is not None and beste_ueb > 0.08 * gst_flaeche:
-        linien = contour_generator(z=(lab == beste).astype(float)).lines(0.5)
-        ring = max(linien, key=len)
+    if maske is not None and ueb > 0.08 * gst_flaeche:
+        konturen = contour_generator(z=maske.astype(float)).lines(0.5)
+        ring = max(konturen, key=len)
         pts = [welt(c, r) for c, r in ring]
         poly = SPolygon(pts).buffer(rad * px + 0.1, join_style="mitre").simplify(0.25)
         if poly.geom_type == "Polygon" and poly.area > 10:

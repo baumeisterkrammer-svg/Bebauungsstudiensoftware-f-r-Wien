@@ -88,3 +88,18 @@ def test_hoehe_und_bauweise_aus_texten():
     assert bauweise_aus_woertern(w, 0, 0)[0] == "g"
     assert hoehe_aus_woertern(w, 0, 0)[0] == 10.5
     assert hoehe_aus_woertern([Wort("10.5m", 0, 0, 90)], 0, 0)[0] == 10.5
+
+
+def test_echter_plan_olbrichgasse():
+    """Aufgezeichneter Ausschnitt Stadt Wien (CC BY 4.0), Olbrichgasse 9."""
+    import json
+    from pathlib import Path
+    from PIL import Image
+    d = Path(__file__).parent / "daten"
+    b = np.asarray(Image.open(d / "olbrichgasse9_flucht.png"))
+    m = json.loads((d / "olbrichgasse9_flucht.json").read_text())
+    erg = fluchtlinien_auswerten(b, m["ext"], [tuple(p) for p in m["umriss"]], set(m["kanten"]))
+    assert erg.flaeche is not None, erg.protokoll
+    imgst = Polygon(erg.flaeche).intersection(Polygon(m["umriss"])).area
+    assert 240 < imgst < 300, erg.protokoll
+    assert 12.0 in erg.strassenbreiten.values()
