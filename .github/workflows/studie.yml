@@ -63,6 +63,11 @@ jobs:
           if [ -n "$STRASSENBREITE" ]; then ARGS="$ARGS --strassenbreite $STRASSENBREITE"; fi
           python scripts/studie_adresse.py "$ADRESSE" ergebnis/studie $ARGS
           cat ergebnis/studie/ergebnis.md >> "$GITHUB_STEP_SUMMARY"
+      - name: Erkundung BEV-Kataster
+        if: ${{ github.event_name == 'push' }}
+        timeout-minutes: 6
+        continue-on-error: true
+        run: python scripts/kataster_erkunden.py
       - name: Erkundung aller Layer
         if: ${{ github.event.inputs.erkunden == 'true' }}
         timeout-minutes: 8
