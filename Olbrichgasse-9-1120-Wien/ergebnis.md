@@ -35,12 +35,12 @@ Vorabschätzung, keine Rechtsauskunft. Datenquellen: Stadt Wien – data.wien.gv
 - Kataster: Grundstück 453/47 ist überbaut und grenzt nicht an die Straße; mit dem einzigen Nachbargrundstück 453/16 zum Bauplatz zusammengelegt (bitte prüfen).
 - Kataster: Nutzung Gebäude 111 m², Garten 580 m²; Straßenkanten [0, 3, 4]; Nachbargrundstücke 453/15 (883 m²), 453/17 (544 m²)
 - Fluchtlinien-Bild: 768×768 px, 0.20 m/px, rote Pixel 4.4%
-- Linien 3.6%, Schrift 0.8% der Bildfläche
+- Linien 3.6%, Schrift 0.7% der Bildfläche
 - Baufluchtlinien: keine geschlossene Fläche am Grundstück erkannt
 - Straßenkante 0: Abstand der Baulinien ca. 24.5 m (Messungen 24.3, 24.3, 24.3, 24.2, 24.2)
 - Straßenkante 3: Abstand der Baulinien ca. 12.0 m (Messungen 12.0, 12.0, 3.7, 3.6, 12.1)
 - Straßenkante 4: Abstand der Baulinien ca. 12.0 m (Messungen 11.9, 11.9, 11.9, 12.0, 11.8)
-- Planbeschriftung: %, &, (Ten, +, -, /, 00, 02, 1, 12, 19, 2, 20, 45, 46, 5m, 65, 9, <0, >, ?, Bey, De,, Fo, Keng, OON, Oo, Oz, PAG, Ss, W, We,, Ww, WwW, YB, \, eo, g, gam, go
+- Planbeschriftung: %, &, (Ten, +, -, /, 00, 02, 1, 12, 19, 2, 20, 45, 46, 5m, 65, 9, <0, >, ?, Fo, J, OON, Oo, Oz, PAG, Qs,, Ss, W, Ww, YB, \, a, eo, go, iv, o, oN, oe
 - keine Bauweisen-Beschriftung im Umkreis erkannt
 - Bebauungsplan: Ausschnitt als Bild beigelegt
 
