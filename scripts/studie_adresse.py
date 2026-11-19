@@ -67,14 +67,27 @@ def main() -> int:
         grund_text = f"{a.breite} m breit × {a.tiefe} m tief (Rechteck, Annahme)"
 
     plan_dateien = []
+    flucht = None
+    strassenbreite, strassenbreite_text = a.strassenbreite, (
+        f"{a.strassenbreite} m (Eingabe)" if a.strassenbreite else "unbekannt")
     try:
         xs, ys = zip(*umriss)
         rand = max(25.0, 0.6 * max(max(xs) - min(xs), max(ys) - min(ys)))
         bbox = (min(xs) - rand, min(ys) - rand, max(xs) + rand, max(ys) + rand)
         if gst is not None:
+            try:
+                flucht, _, _ = bebauungsplan.lies_fluchtlinien(umriss, kanten, bbox)
+                st.protokoll += flucht.protokoll
+                if strassenbreite is None and flucht.strassenbreiten:
+                    strassenbreite = min(flucht.strassenbreiten.values())
+                    strassenbreite_text = (f"{strassenbreite:.1f} m (aus dem Planbild gemessen, "
+                                           "schmalste angrenzende Straße)")
+            except Exception as e:
+                st.protokoll.append(f"Fluchtlinien nicht auswertbar ({type(e).__name__}: {e})")
             plan_dateien = bebauungsplan.zeichne_ausschnitt(
                 out / "bebauungsplan", umriss, bbox, ebenen=("flwbplmzk", "flwbplflucht"),
-                titel=f"Flächenwidmungs- und Bebauungsplan – {st.adresse}")
+                titel=f"Flächenwidmungs- und Bebauungsplan – {st.adresse}",
+                erkannt=flucht.flaeche if flucht else None)
             st.protokoll.append("Bebauungsplan: Ausschnitt als Bild beigelegt")
     except Exception as e:
         st.protokoll.append(f"Bebauungsplan-Ausschnitt nicht abrufbar ({type(e).__name__}: {e})")
@@ -106,7 +119,9 @@ def main() -> int:
         "",
         f"- Grundstück: {grund_text}",
         f"- Bauweise: {a.bauweise} (Annahme, im Plandokument prüfen)",
-        f"- Abstand der Fluchtlinien: {a.strassenbreite or 'unbekannt'} m",
+        f"- Abstand der Fluchtlinien (Straßenbreite): {strassenbreite_text}",
+        "- Bebaubare Fläche: " + ("innerhalb der aus dem Planbild erkannten Baufluchtlinien (bitte prüfen)"
+                                  if flucht and flucht.flaeche else "pauschal mit Vorgarten 5 m gerechnet"),
         "- Besondere Bestimmungen des Plandokuments: nicht berücksichtigt",
         "",
         "## Protokoll",
@@ -124,7 +139,8 @@ def main() -> int:
         strassenkanten=kanten,
         bauklasse=st.bauklasse,
         bauweise=a.bauweise,
-        fluchtlinienabstand=a.strassenbreite,
+        fluchtlinienabstand=strassenbreite,
+        fluchtlinien_flaeche=flucht.flaeche if flucht else None,
         schutzzone=st.schutzzone,
         gartensiedlung=st.gartensiedlung,
         wohngebiet=(st.widmungsklasse == "WO"),

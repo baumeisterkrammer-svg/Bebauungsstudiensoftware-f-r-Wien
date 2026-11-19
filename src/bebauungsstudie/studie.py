@@ -41,6 +41,9 @@ class Bauplatz:
     wohngebiet: bool = True
     dachneigung: float | None = None
     stellplatzregulativ_prozent: float = 100.0
+    fluchtlinien_flaeche: list[tuple[float, float]] | None = None
+    """Fläche innerhalb der Baufluchtlinien laut Bebauungsplan (falls bekannt).
+    Ersetzt dann den pauschalen Vorgarten an den Straßenkanten."""
 
     def __post_init__(self) -> None:
         if self.bauweise not in BAUWEISEN:
@@ -107,9 +110,11 @@ def _bebaubarer_grundriss(bp: Bauplatz, studie_hinweise: list[str]) -> BaseGeome
             "Geschlossene Bauweise: hintere Baufluchtlinie aus dem Plandokument "
             "muss ergänzt werden."
         )
+    if bp.fluchtlinien_flaeche:
+        flaeche = flaeche.intersection(Polygon(bp.fluchtlinien_flaeche).buffer(0))
     for i in range(n):
         if i in bp.strassenkanten:
-            d = vg if bp.vorgarten else 0.0
+            d = vg if bp.vorgarten and not bp.fluchtlinien_flaeche else 0.0
         else:
             d = abstand
         if d > 0:
@@ -142,6 +147,9 @@ def erstelle_studie(bp: Bauplatz, annahmen: Annahmen | None = None) -> Studie:
     quellen: tuple[Quelle, ...] = (
         Quelle("BO für Wien", "§ 79 Abs. 1, 3"),
     )
+    if bp.fluchtlinien_flaeche:
+        begr = "innerhalb der Baufluchtlinien laut Bebauungsplan, abzüglich Abstandsflächen"
+        quellen += (Quelle("Bebauungsplan", "Baufluchtlinien (§ 5 Abs. 4 BO)"),)
     grenzen = []
     if bp.bebaubare_flaeche_max_m2 is not None:
         grenzen.append(bp.bebaubare_flaeche_max_m2)

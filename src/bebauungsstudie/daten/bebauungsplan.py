@@ -94,7 +94,7 @@ def ebene(name: str, xml: str | None = None) -> Ebene:
 
 
 def ausschnitt(name: str, bbox31256: tuple[float, float, float, float],
-               ziel_aufloesung: float = 0.15, max_kacheln: int = 64):
+               ziel_aufloesung: float = 0.15, max_kacheln: int = 64, modus: str = "RGB"):
     """Bild (H×W×3, uint8) und Ausdehnung (xmin, xmax, ymin, ymax) in EPSG:31256.
 
     Die Kacheln liegen im CRS des Dienstes; für die Darstellung im lokalen
@@ -116,14 +116,18 @@ def ausschnitt(name: str, bbox31256: tuple[float, float, float, float],
     r0, r1 = int((m.oben - y1) // groesse), int((m.oben - y0) // groesse)
     if (c1 - c0 + 1) * (r1 - r0 + 1) > max_kacheln:
         raise ValueError("Ausschnitt zu groß")
-    bild = Image.new("RGB", ((c1 - c0 + 1) * m.kachel, (r1 - r0 + 1) * m.kachel), "white")
+    leer = (255, 255, 255) if modus == "RGB" else (0, 0, 0, 0)
+    bild = Image.new(modus, ((c1 - c0 + 1) * m.kachel, (r1 - r0 + 1) * m.kachel), leer)
     for r in range(r0, r1 + 1):
         for c in range(c0, c1 + 1):
             url = (e.vorlage.replace("{Style}", e.stil).replace("{TileMatrixSet}", e.matrixset)
                    .replace("{TileMatrix}", m.ident).replace("{TileRow}", str(r)).replace("{TileCol}", str(c)))
             try:
-                k = Image.open(io.BytesIO(_hole(url))).convert("RGB")
-                bild.paste(k, ((c - c0) * m.kachel, (r - r0) * m.kachel))
+                k = Image.open(io.BytesIO(_hole(url))).convert("RGBA")
+                if modus == "RGB":
+                    hinten = Image.new("RGBA", k.size, (255, 255, 255, 255))
+                    k = Image.alpha_composite(hinten, k)
+                bild.paste(k.convert(modus), ((c - c0) * m.kachel, (r - r0) * m.kachel))
             except Exception:
                 pass
     lx, oy = m.links + c0 * groesse, m.oben - r0 * groesse
@@ -132,7 +136,8 @@ def ausschnitt(name: str, bbox31256: tuple[float, float, float, float],
     return np.asarray(bild), (ax, bx, ay, by)
 
 
-def zeichne_ausschnitt(pfad, umriss_pts, bbox, ebenen=("flwbplmzk",), titel="") -> list[str]:
+def zeichne_ausschnitt(pfad, umriss_pts, bbox, ebenen=("flwbplmzk",), titel="",
+                       erkannt=None) -> list[str]:
     """Speichert PNGs der Planebenen mit dem Grundstück als rote Linie."""
     import matplotlib
     matplotlib.use("Agg")
@@ -144,7 +149,11 @@ def zeichne_ausschnitt(pfad, umriss_pts, bbox, ebenen=("flwbplmzk",), titel="") 
         fig, ax = plt.subplots(figsize=(8, 8), dpi=150)
         ax.imshow(bild, extent=ext, interpolation="bilinear")
         xs, ys = zip(*(list(umriss_pts) + [umriss_pts[0]]))
-        ax.plot(xs, ys, color="#d00", lw=2)
+        ax.plot(xs, ys, color="#d00", lw=2, label="Grundstück (BEV)")
+        if erkannt:
+            ex, ey = zip(*(list(erkannt) + [erkannt[0]]))
+            ax.plot(ex, ey, color="#06c", lw=1.6, ls="--", label="erkannte Baufluchtlinien")
+            ax.legend(loc="upper right", fontsize=7)
         ax.set_xlim(bbox[0], bbox[2])
         ax.set_ylim(bbox[1], bbox[3])
         ax.set_aspect("equal")
@@ -158,3 +167,130 @@ def zeichne_ausschnitt(pfad, umriss_pts, bbox, ebenen=("flwbplmzk",), titel="") 
         plt.close(fig)
         dateien.append(p)
     return dateien
+
+
+# --- Fluchtlinien aus dem Planbild -------------------------------------------
+
+@dataclass
+class Fluchtlinien:
+    flaeche: list[tuple[float, float]] | None
+    """Fläche innerhalb der Baufluchtlinien, die das Grundstück überdeckt (EPSG:31256)."""
+    strassenbreiten: dict[int, float]
+    """Abstand der Baulinien über die Straße je Straßenkante des Grundstücks (m)."""
+    protokoll: list[str]
+
+
+def _rote_linien(bild: np.ndarray) -> np.ndarray:
+    r, g, b = (bild[..., i].astype(int) for i in range(3))
+    sichtbar = bild[..., 3] > 80 if bild.shape[-1] == 4 else np.ones(r.shape, bool)
+    return sichtbar & (r > 140) & (g < 120) & (b < 120) & (r - g > 60)
+
+
+def fluchtlinien_auswerten(bild: np.ndarray, ext, umriss, strassenkanten,
+                           spaltbreite: float = 3.0) -> Fluchtlinien:
+    """Erkennt aus dem Fluchtlinien-Bild (rot auf transparent) die Fläche innerhalb
+    der Baufluchtlinien am Grundstück und die Straßenbreiten.
+
+    Vorgehen: rote Pixel maskieren, Strichlücken bis `spaltbreite` schließen,
+    die eingeschlossenen Flächen beschriften; maßgeblich ist die geschlossene
+    Fläche mit der größten Überdeckung des Grundstücks."""
+    from contourpy import contour_generator
+    from matplotlib.path import Path as MPath
+    from scipy import ndimage
+    from shapely.geometry import Polygon as SPolygon
+
+    log: list[str] = []
+    h, w = bild.shape[:2]
+    px = (ext[1] - ext[0]) / w
+    py = (ext[3] - ext[2]) / h
+    rot = _rote_linien(bild)
+    rot_anteil = rot.mean()
+    log.append(f"Fluchtlinien-Bild: {w}×{h} px, {px:.2f} m/px, rote Pixel {rot_anteil:.1%}")
+
+    def welt(col, row):
+        return ext[0] + (col + 0.5) * px, ext[3] - (row + 0.5) * py
+
+    def pixel(x, y):
+        return (x - ext[0]) / px - 0.5, (ext[3] - y) / py - 0.5
+
+    # Strichlücken schließen
+    rad = max(1, int(round(spaltbreite / 2 / px)))
+    yy, xx = np.ogrid[-rad:rad + 1, -rad:rad + 1]
+    scheibe = (xx * xx + yy * yy) <= rad * rad
+    # Linien um die halbe Lückenbreite verdicken; die gefundenen Flächen werden
+    # danach um dasselbe Maß wieder vergrößert
+    zu = ndimage.binary_dilation(rot, structure=scheibe)
+    lab, anzahl = ndimage.label(~zu)
+    rand = set(np.unique(np.concatenate([lab[0], lab[-1], lab[:, 0], lab[:, -1]]))) - {0}
+
+    cols, rows = np.meshgrid(np.arange(w), np.arange(h))
+    gx, gy = welt(cols, rows)
+    im_gst = MPath(list(umriss)).contains_points(np.c_[gx.ravel(), gy.ravel()]).reshape(h, w)
+    gst_flaeche = SPolygon(umriss).area
+    pix = px * py
+    beste, beste_ueb = None, 0.0
+    for k in range(1, anzahl + 1):
+        if k in rand:
+            continue
+        maske = lab == k
+        flaeche = maske.sum() * pix
+        ueb = (maske & im_gst).sum() * pix
+        if ueb > beste_ueb and 5 < flaeche < 3 * gst_flaeche + 3000:
+            beste, beste_ueb = k, ueb
+    flaeche_pts = None
+    if beste is not None and beste_ueb > 0.08 * gst_flaeche:
+        linien = contour_generator(z=(lab == beste).astype(float)).lines(0.5)
+        ring = max(linien, key=len)
+        pts = [welt(c, r) for c, r in ring]
+        poly = SPolygon(pts).buffer(rad * px + 0.1, join_style="mitre").simplify(0.25)
+        if poly.geom_type == "Polygon" and poly.area > 10:
+            flaeche_pts = [(round(x, 2), round(y, 2)) for x, y in poly.exterior.coords[:-1]]
+            log.append(f"Baufluchtlinien: geschlossene Fläche {poly.area:.0f} m² erkannt, "
+                       f"davon {poly.intersection(SPolygon(umriss)).area:.0f} m² im Grundstück")
+    if flaeche_pts is None:
+        log.append("Baufluchtlinien: keine geschlossene Fläche am Grundstück erkannt")
+
+    # Straßenbreiten: von der Straßenkante nach außen bis zur gegenüberliegenden Baulinie
+    breiten = {}
+    n = len(umriss)
+    for i in sorted(strassenkanten):
+        (x0, y0), (x1, y1) = umriss[i], umriss[(i + 1) % n]
+        lang = math.hypot(x1 - x0, y1 - y0)
+        if lang < 3:
+            continue
+        nx, ny = (y1 - y0) / lang, -(x1 - x0) / lang
+        messungen = []
+        for f in (0.2, 0.35, 0.5, 0.65, 0.8):
+            mx, my = x0 + f * (x1 - x0), y0 + f * (y1 - y0)
+            t, im_rot, verlassen = 0.0, False, False
+            while t < 60:
+                c, r = pixel(mx + nx * t, my + ny * t)
+                c, r = int(round(c)), int(round(r))
+                if not (0 <= c < w and 0 <= r < h):
+                    break
+                ist = bool(rot[r, c])
+                if t > 1.5 and not ist:
+                    verlassen = True
+                if verlassen and ist and t > 3:
+                    start = t
+                    while t < 60:
+                        c, r = (int(round(v)) for v in pixel(mx + nx * t, my + ny * t))
+                        if not (0 <= c < w and 0 <= r < h and rot[r, c]):
+                            break
+                        t += px / 2
+                    messungen.append((start + t) / 2)
+                    break
+                t += px / 2
+        if len(messungen) >= 3:
+            b = round(float(np.median(messungen)) * 2) / 2
+            breiten[i] = b
+            log.append(f"Straßenkante {i}: Abstand der Baulinien ca. {b:.1f} m "
+                       f"(Messungen {', '.join(f'{m:.1f}' for m in messungen)})")
+        else:
+            log.append(f"Straßenkante {i}: Straßenbreite nicht messbar")
+    return Fluchtlinien(flaeche_pts, breiten, log)
+
+
+def lies_fluchtlinien(umriss, strassenkanten, bbox, aufloesung: float = 0.1):
+    bild, ext = ausschnitt("flwbplflucht", bbox, ziel_aufloesung=aufloesung, max_kacheln=100, modus="RGBA")
+    return fluchtlinien_auswerten(bild, ext, umriss, strassenkanten), bild, ext

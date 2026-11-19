@@ -8,7 +8,7 @@ version = "0.1.0"
 description = "Automatisierte Bebauungsstudien auf Grundlage des Wiener Flächenwidmungs- und Bebauungsplans"
 readme = "README.md"
 requires-python = ">=3.11"
-dependencies = ["shapely>=2.0", "ifcopenshell>=0.8", "ezdxf>=1.1", "matplotlib>=3.8", "numpy", "pyproj>=3.6", "pyogrio>=0.7"]
+dependencies = ["shapely>=2.0", "ifcopenshell>=0.8", "ezdxf>=1.1", "matplotlib>=3.8", "numpy", "pyproj>=3.6", "pyogrio>=0.7", "scipy>=1.10", "pillow>=10"]
 
 [project.optional-dependencies]
 dev = ["pytest>=8"]
