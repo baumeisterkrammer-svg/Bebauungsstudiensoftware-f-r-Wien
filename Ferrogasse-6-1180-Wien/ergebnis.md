@@ -15,7 +15,8 @@ Vorabschätzung, keine Rechtsauskunft. Datenquellen: Stadt Wien – data.wien.gv
 ## Eingaben und Annahmen (im Plandokument nur als Bild, bitte prüfen)
 
 - Grundstück: KG 01501, Grundstück 479/2: 126 m² laut BEV-Katastralmappe (Stichtag 01.10.2026), Straßenkanten [0]
-- Bauweise: o (Annahme, im Plandokument prüfen)
+- Bauweise: o (aus der Planbeschriftung gelesen, bitte prüfen)
+- Festgesetzte Gebäudehöhe: keine erkannt (Höhe nach Bauklasse)
 - Abstand der Fluchtlinien (Straßenbreite): 15.0 m (aus dem Planbild gemessen, schmalste angrenzende Straße)
 - Bebaubare Fläche: innerhalb der aus dem Planbild erkannten Baufluchtlinien (bitte prüfen)
 - Besondere Bestimmungen des Plandokuments: nicht berücksichtigt
@@ -33,10 +34,11 @@ Vorabschätzung, keine Rechtsauskunft. Datenquellen: Stadt Wien – data.wien.gv
 - Kataster: Nutzung Gebäude 122 m², Gebäudenebenfläche 4 m²; Straßenkanten [0]; Nachbargrundstücke 481/2 (115 m²), 479/1 (92 m²), 476 (391 m²)
 - Kataster: Das Grundstück am Adresspunkt ist fast ganz überbaut. Der Bauplatz umfasst vermutlich weitere Grundstücke derselben Einlagezahl; bitte prüfen.
 - Fluchtlinien-Bild: 768×512 px, 0.20 m/px, rote Pixel 7.0%
-- Baufluchtlinien: geschlossene Fläche 497 m² erkannt, davon 53 m² im Grundstück
+- Linien 4.7%, Schrift 2.3% der Bildfläche
+- Baufluchtlinien: geschlossene Fläche 1781 m² erkannt, davon 113 m² im Grundstück
 - Straßenkante 0: Abstand der Baulinien ca. 15.0 m (Messungen 15.0, 15.0, 15.0, 15.0, 15.0)
-- Planbeschriftung: %, %.., 002,, 007", 02,, 0p, 10, 10,5, 10.5, 12.00, 15.17, 2, 2,, 4, 405, 42.00, 42.08, 7, 70, 9, ;, <, >, >,, A0, CO, D, M4, My, Nb, Of, Oo, Op, Ot, SZ, \, a, a>, at, eee
-- keine Bauweisen-Beschriftung im Umkreis erkannt
+- Planbeschriftung: %, &, 0, 00, 0p, 10, 105m, 12, 1200, 15, 17, 2, 4, 42,00, 42.00, 45, 5m, 6, 7, 8, 9, =, =,, >, AT, Ay, BR, CZ, G, Ly, M4, My, OG, ON, SZ, So, Sp, St, Ve, W
+- Bauweise „o“ aus der Planbeschriftung gelesen (14 m vom Grundstück, innerhalb derselben Baufluchtlinien)
 - Bebauungsplan: Ausschnitt als Bild beigelegt
 
 ## Ergebnis
