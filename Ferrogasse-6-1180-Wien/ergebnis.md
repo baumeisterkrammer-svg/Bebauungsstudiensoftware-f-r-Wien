@@ -34,11 +34,11 @@ Vorabschätzung, keine Rechtsauskunft. Datenquellen: Stadt Wien – data.wien.gv
 - Kataster: Nutzung Gebäude 122 m², Gebäudenebenfläche 4 m²; Straßenkanten [0]; Nachbargrundstücke 481/2 (115 m²), 479/1 (92 m²), 476 (391 m²)
 - Kataster: Das Grundstück am Adresspunkt ist fast ganz überbaut. Der Bauplatz umfasst vermutlich weitere Grundstücke derselben Einlagezahl; bitte prüfen.
 - Fluchtlinien-Bild: 768×512 px, 0.20 m/px, rote Pixel 7.0%
-- Linien 4.7%, Schrift 2.3% der Bildfläche
-- Baufluchtlinien: geschlossene Fläche 1781 m² erkannt, davon 113 m² im Grundstück
+- Linien 4.8%, Schrift 2.2% der Bildfläche
+- Baufluchtlinien: geschlossene Fläche 1780 m² erkannt, davon 113 m² im Grundstück
 - Straßenkante 0: Abstand der Baulinien ca. 15.0 m (Messungen 15.0, 15.0, 15.0, 15.0, 15.0)
-- Planbeschriftung: %, &, 0, 00, 0p, 10, 105m, 12, 1200, 15, 17, 2, 4, 42,00, 42.00, 45, 5m, 6, 7, 8, 9, =, =,, >, AT, Ay, BR, CZ, G, Ly, M4, My, OG, ON, SZ, So, Sp, St, Ve, W
-- Bauweise „g“ aus der Planbeschriftung gelesen (43 m vom Grundstück, innerhalb derselben Baufluchtlinien)
+- Planbeschriftung: %, &, 00, 002, 00S, 00¢, 105m, 2, 2,00, 2.00, 200, 4, 5, 5m, 6, 7, 8, 9, 99, =, >, BR, G, M4, My, OG, Op, Oy, RY, S, V, VE, VL, Ve, W, WW, Wg, \N, g, ges
+- Bauweise „g“ aus der Planbeschriftung gelesen (4 m vom Grundstück, innerhalb derselben Baufluchtlinien)
 - Gebäudehöhe 10.5 m aus der Planbeschriftung gelesen (45 m vom Grundstück)
 - Bebauungsplan: Ausschnitt als Bild beigelegt
 
