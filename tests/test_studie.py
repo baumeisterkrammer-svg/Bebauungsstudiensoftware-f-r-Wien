@@ -1,0 +1,38 @@
+import pytest
+
+from bebauungsstudie import Annahmen, Bauplatz, erstelle_studie
+from bebauungsstudie.regeln.bauklassen import Bauklasse
+
+# 40 m breit an der Straße (Kante 0), 50 m tief
+RECHTECK = [(0, 0), (40, 0), (40, 50), (0, 50)]
+
+
+def test_offene_bauweise_bk_ii():
+    bp = Bauplatz(RECHTECK, {0}, Bauklasse.II, "o", fluchtlinienabstand=20.0)
+    s = erstelle_studie(bp, Annahmen(trakttiefe=12.0))
+    # Breite 40 - 2*6 = 28, Tiefe 50 - 5 (Vorgarten) - 6 = 39
+    assert s.werte["Bebaute Fläche m²"].wert == pytest.approx(28 * 39)
+    assert s.werte["Gebäudehöhe m"].wert == 12.0
+    assert s.werte["Vollgeschoße"].wert == 4
+    assert s.werte["BGF m²"].wert > 28 * 39 * 4
+    assert "Vorabschätzung" in s.bericht()
+
+
+def test_geschlossene_bauweise_mit_bebaubarer_flaeche():
+    bp = Bauplatz(
+        RECHTECK, {0}, Bauklasse.IV, "g",
+        fluchtlinienabstand=14.0, vorgarten=False,
+        bebaubare_flaeche_max_anteil=0.5,
+    )
+    s = erstelle_studie(bp)
+    assert s.werte["Bebaute Fläche m²"].wert == pytest.approx(1000)
+    assert s.werte["Gebäudehöhe m"].wert == 17.0
+    assert s.werte["Vollgeschoße"].wert == 5
+    assert any("Baufluchtlinie" in h for h in s.hinweise)
+
+
+def test_kein_platz_bei_zu_kleinem_bauplatz():
+    bp = Bauplatz([(0, 0), (20, 0), (20, 20), (0, 20)], {0}, Bauklasse.III, "o")
+    s = erstelle_studie(bp)
+    assert s.werte["Bebaute Fläche m²"].wert == 0
+    assert "BGF m²" not in s.werte
