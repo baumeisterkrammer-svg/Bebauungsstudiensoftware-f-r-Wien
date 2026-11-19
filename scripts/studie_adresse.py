@@ -80,6 +80,10 @@ def main() -> int:
         if gst is not None:
             try:
                 flucht, fbild, fext = bebauungsplan.lies_fluchtlinien(umriss, kanten, bbox)
+                from PIL import Image as _Img
+                _Img.fromarray(fbild).save(out / "fluchtlinien_roh.png")
+                (out / "fluchtlinien_roh.json").write_text(
+                    __import__("json").dumps({"ext": list(fext), "umriss": umriss, "kanten": sorted(kanten)}))
                 st.protokoll += flucht.protokoll
                 if bauweise is None:
                     if planschrift.verfuegbar():
