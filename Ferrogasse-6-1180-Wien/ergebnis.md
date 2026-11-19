@@ -51,17 +51,18 @@ Bauplatzfläche m²: 126.0  [Eingabe Grundstücksgeometrie]  aus Geometrie
 Bebaute Fläche m²: 113.1  [BO für Wien § 79 Abs. 1, 3, Bebauungsplan Baufluchtlinien (§ 5 Abs. 4 BO)]  innerhalb der Baufluchtlinien laut Bebauungsplan, abzüglich Abstandsflächen
 Gebäudehöhe m: 10.5  [BO für Wien § 75 Abs. 2, Bebauungsplan Besondere Bestimmung]  maßgeblich: im Bebauungsplan festgesetzte Höhe mit 10.5 m
 Vollgeschoße: 3  [BO für Wien § 75 Abs. 2, Bebauungsplan Besondere Bestimmung]  10.5 m / 3.0 m Geschoßhöhe (Annahme), abgerundet
-Dachgeschoße: [4.56]  [BO für Wien § 81 Abs. 1, 4]  Trakttiefe 9.556133860341987 m, Umriss 45.0°, bis 9.0 m über GH: 1 Dachgeschoß(e)
-BGF m²: 370.4  [BO für Wien § 75 Abs. 2, Bebauungsplan Besondere Bestimmung, BO für Wien § 81 Abs. 4, BO für Wien § 81 Abs. 1]  113.1 m² × 3 Vollgeschoße + 31.1 m² Dachgeschoße
-Nutzfläche m²: 277.8  [Annahme Nutzflächenfaktor]  BGF × 0.75
-Wohnungen: 4  [Annahme Wohnungsgröße]  278 m² / 65.0 m² je Wohnung
-Pflichtstellplätze: 2  [WGarG 2008 § 50]  278 m² WNF / 100 = 2 Regelbedarf, × 100 % = 2
+Dachgeschoße: [7.06]  [BO für Wien § 81 Abs. 1, 4]  Trakttiefe 12.064014850941021 m, Umriss 45.0°, bis 9.0 m über GH: 1 Dachgeschoß(e)
+BGF m²: 404.9  [BO für Wien § 75 Abs. 2, Bebauungsplan Besondere Bestimmung, BO für Wien § 81 Abs. 4, BO für Wien § 81 Abs. 1]  113.1 m² × 3 Vollgeschoße + 65.5 m² Dachgeschoße
+Nutzfläche m²: 303.7  [Annahme Nutzflächenfaktor]  BGF × 0.75
+Wohnungen: 4  [Annahme Wohnungsgröße]  304 m² / 65.0 m² je Wohnung
+Pflichtstellplätze: 3  [WGarG 2008 § 50]  304 m² WNF / 100 = 3 Regelbedarf, × 100 % = 3
 Freifläche m²: 12.9  [BO für Wien § 79]  Bauplatz minus bebaute Fläche
 davon unversiegelt mind. m²: 8.6  [BO für Wien § 79 Abs. 6]  2/3 von 12.9 m² = 8.6 m²
 Bäume: 1  [BO für Wien § 79 Abs. 7]  12.9 m² / 200 m², aufgerundet = 1
 
 Hinweise:
 - Geschlossene Bauweise: hintere Baufluchtlinie aus dem Plandokument muss ergänzt werden.
+- Geschlossene Bauweise: Dachgeschoße reichen von Nachbar zu Nachbar, der Umriss steigt nur von Straßen- und Hoffront an (§ 81).
 - Stellplatzzone 2: mögliche Reduktion der Pflichtstellplätze nach WGarG § 50a ist noch nicht eingerechnet.
 - Schutzzone: Straßenbreite begrenzt die Höhe nicht (§ 75 Abs. 6).
 - Dachaufbauten nach § 81 Abs. 6 nicht berücksichtigt.
