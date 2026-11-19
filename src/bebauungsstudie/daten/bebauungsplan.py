@@ -218,7 +218,7 @@ def _ist_strich(teil: np.ndarray, px: float, py: float, toleranz: float = 0.45) 
 def trenne_linien_schrift(rot: np.ndarray, px: float, py: float) -> tuple[np.ndarray, np.ndarray]:
     """Teilt die rote Maske in Linien (Fluchtlinien, Striche) und Schrift.
 
-    Teile länger als 8 m oder kleiner als 1,5 m² sind Linien; die übrigen
+    Teile länger als 8 m oder kleiner als 3 m² sind Linien; die übrigen
     werden über ihr Skelett unterschieden (siehe `_ist_strich`)."""
     from scipy import ndimage
 
@@ -229,7 +229,7 @@ def trenne_linien_schrift(rot: np.ndarray, px: float, py: float) -> tuple[np.nda
         teil = lab[sl] == k
         # kleine Teile (Striche, Strichecken, Punkte) bleiben Linien, damit
         # gestrichelte Baufluchtlinien geschlossen bleiben
-        if (max(teil.shape[0] * py, teil.shape[1] * px) > 8.0 or teil.sum() * px * py < 1.5
+        if (max(teil.shape[0] * py, teil.shape[1] * px) > 8.0 or teil.sum() * px * py < 3.0
                 or _ist_strich(teil, px, py)):
             linien[sl] |= teil
         else:
