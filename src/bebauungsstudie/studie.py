@@ -79,6 +79,8 @@ class Studie:
     hinweise: list[str] = field(default_factory=list)
     kontext: object | None = None
     """Umgebung (Nachbargebäude, Luftbild), siehe daten.kontext.Kontext."""
+    nachverdichtung: object | None = None
+    """Studienmodus Nachverdichtung, siehe nachverdichtung.erstelle_nachverdichtung."""
 
     def bericht(self) -> str:
         zeilen = ["Bebauungsstudie (Vorabschätzung, keine Rechtsauskunft)", ""]
@@ -90,6 +92,8 @@ class Studie:
             hin.extend(e.hinweise)
         if hin:
             zeilen += ["", "Hinweise:"] + [f"- {h}" for h in dict.fromkeys(hin)]
+        if self.nachverdichtung is not None:
+            zeilen += ["", "", self.nachverdichtung.bericht()]
         return "\n".join(zeilen)
 
 

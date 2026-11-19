@@ -30,6 +30,11 @@ on:
       strassenbreite:
         description: "Abstand der Fluchtlinien in m (leer = unbekannt)"
         default: ""
+      modus:
+        description: "Studienmodus: beide, neubau oder nachverdichtung"
+        type: choice
+        options: [beide, neubau, nachverdichtung]
+        default: beide
       erkunden:
         description: "Zusätzlich alle Stadt-Wien-Layer erkunden"
         type: boolean
@@ -56,6 +61,7 @@ jobs:
       STRASSENBREITE: ${{ github.event.inputs.strassenbreite }}
       GRUNDSTUECKE: ${{ github.event.inputs.grundstuecke }}
       RECHTECK: ${{ github.event.inputs.rechteck }}
+      MODUS: ${{ github.event.inputs.modus || 'beide' }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -70,7 +76,7 @@ jobs:
       - name: Studie rechnen
         timeout-minutes: 8
         run: |
-          ARGS="--breite $BREITE --tiefe $TIEFE"
+          ARGS="--breite $BREITE --tiefe $TIEFE --modus $MODUS"
           if [ -n "$BAUWEISE" ]; then ARGS="$ARGS --bauweise $BAUWEISE"; fi
           if [ -n "$STRASSENBREITE" ]; then ARGS="$ARGS --strassenbreite $STRASSENBREITE"; fi
           if [ -n "$GRUNDSTUECKE" ]; then ARGS="$ARGS --grundstuecke $GRUNDSTUECKE"; fi

@@ -20,6 +20,7 @@ from bebauungsstudie import Bauplatz, erstelle_studie
 from bebauungsstudie.ausgabe.paket import exportiere_alles
 from bebauungsstudie.daten import bebauungsplan, kataster, kontext, planschrift
 from bebauungsstudie.daten.standort import ermittle_standort
+from bebauungsstudie.nachverdichtung import erstelle_nachverdichtung
 
 
 def main() -> int:
@@ -29,6 +30,8 @@ def main() -> int:
     ap.add_argument("--grundstuecke", default="",
                     help="weitere Grundstücksnummern des Bauplatzes, durch Komma getrennt")
     ap.add_argument("--rechteck", action="store_true", help="Kataster nicht verwenden")
+    ap.add_argument("--modus", default="beide", choices=["beide", "neubau", "nachverdichtung"],
+                    help="Neubau (Abbruch), Nachverdichtung (Bestand erhalten) oder beide")
     ap.add_argument("--breite", type=float, default=20.0, help="Grundstücksbreite an der Straße (m)")
     ap.add_argument("--tiefe", type=float, default=40.0, help="Grundstückstiefe (m)")
     ap.add_argument("--bauweise", default=None, choices=["o", "gk", "ogk", "gr", "g"],
@@ -183,6 +186,24 @@ def main() -> int:
     )
     studie = erstelle_studie(bp)
     studie.kontext = umgebung
+    nv_text = []
+    if a.modus != "neubau":
+        bestand = [(b.grundriss, b.hoehe) for b in (umgebung.bestand if umgebung else []) if b.am_bauplatz]
+        studie.nachverdichtung = erstelle_nachverdichtung(studie, bestand)
+        if studie.nachverdichtung is not None:
+            nv = studie.nachverdichtung
+            nv_text = (["## Vergleich Neubau und Nachverdichtung", "",
+                        "| | Neubau (Abbruch) | Nachverdichtung (Bestand erhalten) |", "|---|---:|---:|",
+                        f"| BGF gesamt | {studie.werte['BGF m²'].wert:.0f} m² | "
+                        f"{nv.werte['BGF nach Nachverdichtung m²'].wert:.0f} m² |",
+                        f"| davon neu | {studie.werte['BGF m²'].wert:.0f} m² | "
+                        f"{nv.werte['Zusätzliche BGF m²'].wert:.0f} m² |",
+                        f"| Wohnungen neu | {studie.werte['Wohnungen'].wert} | "
+                        f"{nv.werte['Zusätzliche Wohnungen'].wert} |", ""]
+                       + [f"- {n}: {e.wert} – {e.begruendung}" for n, e in nv.werte.items()]
+                       + [f"- Hinweis: {h}" for h in nv.hinweise] + [""])
+        elif a.modus == "nachverdichtung":
+            nv_text = ["## Nachverdichtung", "", "Kein Bestand am Bauplatz im Baukörpermodell gefunden.", ""]
     if st.bausperre:
         studie.hinweise.append("Bausperre am Standort: Bebauung derzeit eingeschränkt.")
     if st.stellplatzzone:
@@ -190,7 +211,7 @@ def main() -> int:
             f"Stellplatzzone {st.stellplatzzone}: mögliche Reduktion der Pflichtstellplätze "
             "nach WGarG § 50a ist noch nicht eingerechnet.")
     dateien = exportiere_alles(studie, out) if "BGF m²" in studie.werte else []
-    text = "\n".join(kopf + ["", "## Ergebnis", "", "```", studie.bericht(), "```", ""]
+    text = "\n".join(kopf + [""] + nv_text + ["## Ergebnis", "", "```", studie.bericht(), "```", ""]
                      + [f"- {p.name}" for p in dateien]
                      + [f"- {Path(p).name}" for p in plan_dateien])
     (out / "ergebnis.md").write_text(text, encoding="utf-8")

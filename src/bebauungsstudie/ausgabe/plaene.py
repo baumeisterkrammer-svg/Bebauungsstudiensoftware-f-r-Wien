@@ -62,9 +62,9 @@ def _polys(geom: BaseGeometry) -> list[Polygon]:
     return [g for g in getattr(geom, "geoms", []) if isinstance(g, Polygon)]
 
 
-def _plankopf(fig, titel: str, studie: Studie, massstab: str) -> None:
+def _plankopf(fig, titel: str, studie: Studie, massstab: str, zeilen=None) -> None:
     w = studie.werte
-    zeilen = [
+    zeilen = zeilen or [
         f"Bauplatz {w['Bauplatzfläche m²'].wert:.0f} m²",
         f"bebaut {w['Bebaute Fläche m²'].wert:.0f} m²",
         f"BGF {w['BGF m²'].wert:.0f} m²",
@@ -293,10 +293,18 @@ def _prisma(ring, z0, z1):
     return flaechen
 
 
-def seite_axonometrie(studie: Studie, mm: Massenmodell):
+FARBEN_NV = {"bestand": ("#b8b0a4", "#6b645a", "Bestand (erhalten)"),
+             "aufstockung": ("#e07b39", "white", "Aufstockung"),
+             "zubau": ("#c8553d", "white", "Zubau im Hof"),
+             "dachgeschoss": ("#f2b880", "white", "Dachgeschoßausbau")}
+
+
+def _axonometrie(studie: Studie, mm: Massenmodell, titel: str, volumen, hoehe: float,
+                 zeilen=None, legende=None):
+    """volumen: Liste (Polygon lokal, z0, z1, Füllfarbe, Kantenfarbe)."""
     fig = plt.figure(figsize=A3)
     ax = fig.add_axes(FREI, projection="3d")
-    _plankopf(fig, "Axonometrie im Bestand" if mm.kontext else "Axonometrie", studie, "")
+    _plankopf(fig, titel, studie, "", zeilen)
     ax.computed_zorder = False
     elev, azim = 30, -60
     blick = np.array([math.cos(math.radians(elev)) * math.cos(math.radians(azim)),
@@ -305,7 +313,7 @@ def seite_axonometrie(studie: Studie, mm: Massenmodell):
     bp = mm.lokal(mm.bauplatz)
     x0, y0, x1, y1 = bp.bounds
     kontext = _kontext_lokal(mm)
-    r = max(x1 - x0, y1 - y0, mm.gesamthoehe) * (2.0 if kontext else 0.8)
+    r = max(x1 - x0, y1 - y0, hoehe) * (2.0 if kontext else 0.8)
     cx, cy = (x0 + x1) / 2, (y0 + y1) / 2
 
     k = mm.kontext
@@ -334,30 +342,76 @@ def seite_axonometrie(studie: Studie, mm: Massenmodell):
         if abs(c.x - cx) > r / 2 or abs(c.y - cy) > r / 2:
             continue
         ring = list(poly.exterior.coords)[:-1]
-        koerper.append((np.dot([c.x, c.y, h / 2], blick), _prisma(ring, 0, h), FARBE_BESTAND, "#888", 1.0))
-    for g in mm.geschosse:
-        farbe = FARBE_DG if g.dachgeschoss else FARBE_BAU
-        for p in _polys(mm.lokal(g.flaeche)):
-            c = p.centroid
-            z0, z1 = g.ok_fussboden, g.ok_fussboden + g.hoehe
-            koerper.append((np.dot([c.x, c.y, (z0 + z1) / 2], blick),
-                            _prisma(list(p.exterior.coords)[:-1], z0, z1), farbe, "white", 1.0))
-    tiefen = [t for t, *_ in koerper] or [0]
-    lo, hi = min(tiefen), max(tiefen)
-    for t, flaechen, farbe, kante, alpha in sorted(koerper, key=lambda k_: k_[0]):
+        koerper.append((0.0, np.dot([c.x, c.y, h / 2], blick), _prisma(ring, 0, h), FARBE_BESTAND, "#888"))
+    for p, z0, z1, farbe, kante in volumen:
+        c = p.centroid
+        koerper.append((round(z0, 1), np.dot([c.x, c.y, (z0 + z1) / 2], blick),
+                        _prisma(list(p.exterior.coords)[:-1], z0, z1), farbe, kante))
+    # gestapelte Körper: untere zuerst, dann nach Blicktiefe (Malerverfahren)
+    koerper.sort(key=lambda k_: (k_[0], k_[1]))
+    for i, (_, _, flaechen, farbe, kante) in enumerate(koerper):
         ax.add_collection3d(Poly3DCollection(flaechen, facecolor=farbe, edgecolor=kante, lw=0.5,
-                                             alpha=alpha, zorder=2 + (t - lo) / (hi - lo + 1e-9)))
+                                             zorder=2 + i / (len(koerper) + 1)))
     ax.set_xlim(cx - r / 2, cx + r / 2)
     ax.set_ylim(cy - r / 2, cy + r / 2)
-    zf = max(0.25, 1.3 * mm.gesamthoehe / r) if kontext else 1.0
+    zf = max(0.25, 1.3 * hoehe / r) if kontext else 1.0
     ax.set_zlim(0, r * zf)
     ax.set_box_aspect((1, 1, zf), zoom=1.0)
     ax.view_init(elev=elev, azim=azim)
     ax.set_axis_off()
+    if legende:
+        from matplotlib.patches import Patch
+        fig.legend([Patch(facecolor=f, edgecolor="#555") for f, _ in legende], [t for _, t in legende],
+                   loc="upper left", bbox_to_anchor=(0.02, 0.88), frameon=False, fontsize=10)
     if kontext:
         fig.text(0.04, 0.035, "Nachbarbebauung: Baukörpermodell Stadt Wien; Luftbild: Stadt Wien "
                  "(data.wien.gv.at, CC BY 4.0)", fontsize=7, color="#555")
     return fig
+
+
+def seite_axonometrie(studie: Studie, mm: Massenmodell):
+    volumen = []
+    for g in mm.geschosse:
+        farbe = FARBE_DG if g.dachgeschoss else FARBE_BAU
+        for p in _polys(mm.lokal(g.flaeche)):
+            volumen.append((p, g.ok_fussboden, g.ok_fussboden + g.hoehe, farbe, "white"))
+    titel = "Axonometrie im Bestand" if mm.kontext else "Axonometrie"
+    if studie.nachverdichtung is not None:
+        titel = "Neubau (nach Abbruch)" + (" im Bestand" if mm.kontext else "")
+    return _axonometrie(studie, mm, titel, volumen, mm.gesamthoehe)
+
+
+def seite_nachverdichtung(studie: Studie, mm: Massenmodell):
+    nv = studie.nachverdichtung
+    if nv is None:
+        return None
+    gh = studie.annahmen.geschosshoehe
+    volumen, arten = [], []
+    for v in nv.volumen:
+        farbe, kante, _ = FARBEN_NV[v.art]
+        arten.append(v.art)
+        # Bestand in Geschoße teilen, damit die Aufstockung ablesbar bleibt
+        if v.art in ("aufstockung", "zubau"):
+            stufen = [v.z0 + i * gh for i in range(round((v.z1 - v.z0) / gh) + 1)]
+        else:
+            stufen = [v.z0, v.z1]
+        for p in _polys(mm.lokal(v.flaeche)):
+            for z0, z1 in zip(stufen, stufen[1:]):
+                volumen.append((p, z0, z1, farbe, kante))
+    w = nv.werte
+    zeilen = [
+        f"Bestand BGF ca. {w['Bestand BGF m² (geschätzt)'].wert:.0f} m²",
+        f"+ Aufstockung {w['Aufstockung BGF m²'].wert:.0f} m²",
+        f"+ Dachgeschoßausbau {w['Dachgeschoßausbau BGF m²'].wert:.0f} m²",
+        f"+ Zubau im Hof {w['Zubau im Hof BGF m²'].wert:.0f} m²",
+        f"= zusätzlich {w['Zusätzliche BGF m²'].wert:.0f} m² "
+        f"(ca. {w['Zusätzliche Wohnungen'].wert} Wohnungen)",
+        f"Neubau zum Vergleich {w['Vergleich Neubau BGF m²'].wert:.0f} m²",
+    ]
+    hoehe = max([v.z1 for v in nv.volumen] + [mm.gesamthoehe])
+    legende = [(FARBEN_NV[a][0], FARBEN_NV[a][2]) for a in FARBEN_NV if a in arten]
+    return _axonometrie(studie, mm, "Nachverdichtung (Bestand erhalten)", volumen, hoehe,
+                        zeilen=zeilen, legende=legende)
 
 
 SEITEN = {
@@ -366,6 +420,7 @@ SEITEN = {
     "schnitt": seite_schnitt,
     "ansicht": seite_ansicht,
     "axonometrie": seite_axonometrie,
+    "nachverdichtung": seite_nachverdichtung,
 }
 
 
@@ -378,6 +433,8 @@ def exportiere_plaene(studie: Studie, mm: Massenmodell, ordner: str | Path,
     with PdfPages(pdf_pfad) as pdf:
         for name, fn in SEITEN.items():
             fig = fn(studie, mm)
+            if fig is None:
+                continue
             pdf.savefig(fig)
             if png:
                 p = ordner / f"{name}.png"
