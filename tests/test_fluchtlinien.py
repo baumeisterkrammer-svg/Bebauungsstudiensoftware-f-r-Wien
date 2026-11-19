@@ -59,3 +59,24 @@ def test_bauweise_aus_woertern():
          Wort("WIo", 9, 5, 70), Wort("gk", 200, 200, 90)]
     bw, text = bauweise_aus_woertern(w, 0, 0)
     assert bw == "o", text
+
+
+def test_schrift_unterbricht_fluchtlinien_nicht():
+    from PIL import Image, ImageDraw, ImageFont
+    from bebauungsstudie.daten.bebauungsplan import trenne_linien_schrift
+    b = _bild()
+    # großes „g“ und „W“ mitten in die Fläche zwischen den Baufluchtlinien
+    img = Image.fromarray(b)
+    d = ImageDraw.Draw(img)
+    try:
+        f = ImageFont.load_default(size=40)
+    except TypeError:
+        f = ImageFont.load_default()
+    d.text((300, 380), "Wg", fill=(255, 0, 0, 255), font=f)
+    b2 = np.asarray(img).copy()
+    rot = (b2[..., 0] > 140) & (b2[..., 1] < 120) & (b2[..., 3] > 80)
+    linien, schrift = trenne_linien_schrift(rot, PX, PX)
+    assert schrift.sum() > 50
+    umriss = [(0, 0), (20, 0), (20, 30), (0, 30)]
+    erg = fluchtlinien_auswerten(b2, EXT, umriss, {0})
+    assert erg.flaeche is not None and abs(Polygon(erg.flaeche).area - 210) < 30, erg.protokoll

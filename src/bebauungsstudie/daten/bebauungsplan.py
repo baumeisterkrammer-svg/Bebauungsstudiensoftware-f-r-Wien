@@ -186,6 +186,54 @@ def _rote_linien(bild: np.ndarray) -> np.ndarray:
     return sichtbar & (r > 140) & (g < 120) & (b < 120) & (r - g > 60)
 
 
+def _ist_strich(teil: np.ndarray, px: float, py: float, toleranz: float = 0.45) -> bool:
+    """True für gerade Striche und Strich-Ecken (L-Form), False für Buchstaben.
+
+    Das Skelett eines Strichs hat zwei Enden, keine Verzweigung und lässt sich
+    durch höchstens zwei gerade Stücke annähern. Buchstaben wie W, g, m, 0, 5
+    haben Schleifen, Verzweigungen oder mehrere Knicke."""
+    from scipy import ndimage
+    from shapely.geometry import LineString, MultiPoint
+    from skimage.morphology import skeletonize
+
+    ske = skeletonize(teil)
+    if ske.sum() < 2:
+        return True
+    nachbarn = ndimage.convolve(ske.astype(int), np.ones((3, 3), int), mode="constant") - 1
+    enden = np.argwhere(ske & (nachbarn == 1))
+    if len(enden) != 2 or (ske & (nachbarn >= 3)).sum() > 2:
+        return False
+    pts = np.argwhere(ske)[:, ::-1] * np.array([px, py])
+    a, b = enden[0][::-1] * np.array([px, py]), enden[1][::-1] * np.array([px, py])
+    wolke = MultiPoint(pts)
+    gerade = LineString([a, b])
+    abst = np.array([gerade.distance(p) for p in wolke.geoms])
+    if abst.max() <= toleranz:
+        return True
+    c = pts[int(abst.argmax())]
+    knick = LineString([a, c, b])
+    return max(knick.distance(p) for p in wolke.geoms) <= toleranz
+
+
+def trenne_linien_schrift(rot: np.ndarray, px: float, py: float) -> tuple[np.ndarray, np.ndarray]:
+    """Teilt die rote Maske in Linien (Fluchtlinien, Striche) und Schrift.
+
+    Teile länger als 8 m sind Linien; kleinere werden über ihr Skelett
+    unterschieden (siehe `_ist_strich`)."""
+    from scipy import ndimage
+
+    lab, n = ndimage.label(rot, structure=np.ones((3, 3)))
+    linien = np.zeros_like(rot)
+    schrift = np.zeros_like(rot)
+    for k, sl in enumerate(ndimage.find_objects(lab), start=1):
+        teil = lab[sl] == k
+        if max(teil.shape[0] * py, teil.shape[1] * px) > 8.0 or _ist_strich(teil, px, py):
+            linien[sl] |= teil
+        else:
+            schrift[sl] |= teil
+    return linien, schrift
+
+
 def fluchtlinien_auswerten(bild: np.ndarray, ext, umriss, strassenkanten,
                            spaltbreite: float = 3.0) -> Fluchtlinien:
     """Erkennt aus dem Fluchtlinien-Bild (rot auf transparent) die Fläche innerhalb
@@ -219,7 +267,9 @@ def fluchtlinien_auswerten(bild: np.ndarray, ext, umriss, strassenkanten,
     scheibe = (xx * xx + yy * yy) <= rad * rad
     # Linien um die halbe Lückenbreite verdicken; die gefundenen Flächen werden
     # danach um dasselbe Maß wieder vergrößert
-    zu = ndimage.binary_dilation(rot, structure=scheibe)
+    linien, _schrift = trenne_linien_schrift(rot, px, py)
+    log.append(f"Linien {linien.mean():.1%}, Schrift {_schrift.mean():.1%} der Bildfläche")
+    zu = ndimage.binary_dilation(linien, structure=scheibe)
     lab, anzahl = ndimage.label(~zu)
     rand = set(np.unique(np.concatenate([lab[0], lab[-1], lab[:, 0], lab[:, -1]]))) - {0}
 

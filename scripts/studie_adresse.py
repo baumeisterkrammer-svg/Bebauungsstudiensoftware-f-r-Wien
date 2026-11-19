@@ -70,6 +70,7 @@ def main() -> int:
     plan_dateien = []
     flucht = None
     bauweise, bauweise_text = a.bauweise, (f"{a.bauweise} (Eingabe)" if a.bauweise else None)
+    festgesetzte_hoehe = None
     strassenbreite, strassenbreite_text = a.strassenbreite, (
         f"{a.strassenbreite} m (Eingabe)" if a.strassenbreite else "unbekannt")
     try:
@@ -92,6 +93,10 @@ def main() -> int:
                         st.protokoll.append(grund)
                         if bw:
                             bauweise, bauweise_text = bw, f"{bw} (aus der Planbeschriftung gelesen, bitte prüfen)"
+                        hoehe, grund_h = planschrift.hoehe_aus_woertern(woerter, mitte.x, mitte.y, gebiet=gebiet)
+                        if hoehe:
+                            festgesetzte_hoehe = hoehe
+                            st.protokoll.append(grund_h)
                     else:
                         st.protokoll.append("Texterkennung (tesseract) nicht installiert")
                 if strassenbreite is None and flucht.strassenbreiten:
@@ -137,6 +142,8 @@ def main() -> int:
         "",
         f"- Grundstück: {grund_text}",
         f"- Bauweise: {bauweise_text}",
+        f"- Festgesetzte Gebäudehöhe: {festgesetzte_hoehe:.1f} m (aus der Planbeschriftung, bitte prüfen)"
+        if festgesetzte_hoehe else "- Festgesetzte Gebäudehöhe: keine erkannt (Höhe nach Bauklasse)",
         f"- Abstand der Fluchtlinien (Straßenbreite): {strassenbreite_text}",
         "- Bebaubare Fläche: " + ("innerhalb der aus dem Planbild erkannten Baufluchtlinien (bitte prüfen)"
                                   if flucht and flucht.flaeche else "pauschal mit Vorgarten 5 m gerechnet"),
@@ -158,6 +165,7 @@ def main() -> int:
         bauklasse=st.bauklasse,
         bauweise=bauweise,
         fluchtlinienabstand=strassenbreite,
+        festgesetzte_hoehe=festgesetzte_hoehe,
         fluchtlinien_flaeche=flucht.flaeche if flucht else None,
         schutzzone=st.schutzzone,
         gartensiedlung=st.gartensiedlung,
