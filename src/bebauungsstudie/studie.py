@@ -130,6 +130,66 @@ def _kuerzere_seite(geom: BaseGeometry) -> float:
     return min(seiten)
 
 
+def feuermauern(bp: Bauplatz) -> list[LineString]:
+    """Seitliche Grundstücksgrenzen, an die in geschlossener Bauweise angebaut wird.
+
+    Dort steigt der Umriss nach § 81 nicht an: Dachgeschoße reichen von
+    Nachbar zu Nachbar. Seitlich = keine Straßenkante und mehr als 45° zur
+    maßgeblichen Straßenkante geneigt."""
+    if bp.bauweise != "g" or not bp.strassenkanten:
+        return []
+    n = len(bp.umriss)
+    haupt = max(bp.strassenkanten, key=lambda i: bp.kante(i).length)
+    (x0, y0), (x1, y1) = bp.kante(haupt).coords
+    richtung = math.atan2(y1 - y0, x1 - x0)
+    seiten = []
+    for i in range(n):
+        if i in bp.strassenkanten:
+            continue
+        (a0, b0), (a1, b1) = bp.kante(i).coords
+        d = abs(math.atan2(b1 - b0, a1 - a0) - richtung) % math.pi
+        if min(d, math.pi - d) > math.radians(45):
+            seiten.append(bp.kante(i))
+    return seiten
+
+
+def trakttiefe(bp: Bauplatz, grundriss: BaseGeometry) -> float:
+    """Tiefe zwischen den Fronten, an denen der Umriss ansteigt."""
+    if not feuermauern(bp):
+        return _kuerzere_seite(grundriss)
+    haupt = max(bp.strassenkanten, key=lambda i: bp.kante(i).length)
+    (x0, y0), (x1, y1) = bp.kante(haupt).coords
+    l = math.hypot(x1 - x0, y1 - y0)
+    nx, ny = -(y1 - y0) / l, (x1 - x0) / l
+    werte = [x * nx + y * ny for x, y in grundriss.exterior.coords] if grundriss.geom_type == "Polygon" \
+        else [x * nx + y * ny for g in grundriss.geoms for x, y in g.exterior.coords]
+    return max(werte) - min(werte)
+
+
+def dachgeschoss_grundriss(bp: Bauplatz, grundriss: BaseGeometry, einzug: float) -> BaseGeometry:
+    """Grundriss eines Dachgeschoßes: um `einzug` von den ansteigenden Fronten
+    eingerückt; an Feuermauern (geschlossene Bauweise) nicht eingerückt."""
+    if einzug <= 0:
+        return grundriss
+    mauern = feuermauern(bp)
+    if not mauern:
+        return grundriss.buffer(-einzug, join_style="mitre")
+    from shapely.ops import unary_union
+    polys = [grundriss] if grundriss.geom_type == "Polygon" else list(grundriss.geoms)
+    abzug = []
+    for p in polys:
+        ring = list(p.exterior.coords)
+        for i in range(len(ring) - 1):
+            seg = LineString([ring[i], ring[i + 1]])
+            if seg.length < 0.01:
+                continue
+            mitte = seg.interpolate(0.5, normalized=True)
+            if any(m.distance(mitte) < 0.1 for m in mauern):
+                continue
+            abzug.append(seg.buffer(einzug, cap_style="flat", join_style="mitre"))
+    return grundriss.difference(unary_union(abzug)) if abzug else grundriss
+
+
 def erstelle_studie(bp: Bauplatz, annahmen: Annahmen | None = None) -> Studie:
     a = annahmen or Annahmen()
     hinweise: list[str] = []
@@ -183,7 +243,7 @@ def erstelle_studie(bp: Bauplatz, annahmen: Annahmen | None = None) -> Studie:
 
     winkel = umriss.umrisswinkel(bp.gartensiedlung, bp.dachneigung)
     dach = umriss.max_dachhoehe(bp.bauklasse, bp.bauweise, bp.wohngebiet)
-    trakt = a.trakttiefe or _kuerzere_seite(grundriss)
+    trakt = a.trakttiefe or trakttiefe(bp, grundriss)
     # Rest über dem letzten Vollgeschoß bleibt für das Dach nutzbar
     rest = gh.wert - geschosse * a.geschosshoehe
     dg = umriss.dachgeschosse(
@@ -192,9 +252,12 @@ def erstelle_studie(bp: Bauplatz, annahmen: Annahmen | None = None) -> Studie:
     # Umriss steigt von allen Fronten an: Dachgeschoß = Grundriss, allseitig eingerückt
     anteil = flaeche / grundriss.area
     dg_flaechen = [
-        grundriss.buffer(-(trakt - b) / 2, join_style="mitre").area * anteil
+        dachgeschoss_grundriss(bp, grundriss, (trakt - b) / 2).area * anteil
         for b in dg.wert
     ]
+    if feuermauern(bp):
+        hinweise.append("Geschlossene Bauweise: Dachgeschoße reichen von Nachbar zu Nachbar, "
+                        "der Umriss steigt nur von Straßen- und Hoffront an (§ 81).")
     w["Dachgeschoße"] = dg
 
     bgf = flaeche * geschosse + sum(dg_flaechen)

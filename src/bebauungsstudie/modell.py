@@ -14,7 +14,7 @@ from shapely.geometry import LineString, Polygon
 from shapely.geometry.base import BaseGeometry
 
 from .regeln import umriss
-from .studie import Studie, _kuerzere_seite
+from .studie import Studie, dachgeschoss_grundriss, trakttiefe
 
 
 @dataclass
@@ -81,10 +81,10 @@ def erzeuge_modell(studie: Studie) -> Massenmodell:
 
     winkel = umriss.umrisswinkel(bp.gartensiedlung, bp.dachneigung).wert
     dach = umriss.max_dachhoehe(bp.bauklasse, bp.bauweise, bp.wohngebiet).wert
-    trakt = a.trakttiefe or _kuerzere_seite(grundriss)
+    trakt = a.trakttiefe or trakttiefe(bp, grundriss)
     for k, breite in enumerate(w["Dachgeschoße"].wert):
         einzug = (trakt - breite) / 2
-        flaeche = grundriss.buffer(-einzug, join_style="mitre")
+        flaeche = dachgeschoss_grundriss(bp, grundriss, einzug)
         if flaeche.is_empty:
             break
         geschosse.append(

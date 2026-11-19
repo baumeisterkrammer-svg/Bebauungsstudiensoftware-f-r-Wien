@@ -36,3 +36,17 @@ def test_kein_platz_bei_zu_kleinem_bauplatz():
     s = erstelle_studie(bp)
     assert s.werte["Bebaute Fläche m²"].wert == 0
     assert "BGF m²" not in s.werte
+
+
+def test_geschlossene_bauweise_dachgeschoss_von_nachbar_zu_nachbar():
+    from bebauungsstudie.regeln.bauklassen import Bauklasse
+    from bebauungsstudie.studie import dachgeschoss_grundriss, feuermauern
+    # 8 m breit an der Straße, 14 m tief, Baulinie an der Straße
+    bp = Bauplatz(umriss=[(0, 0), (8, 0), (8, 14), (0, 14)], strassenkanten={0},
+                  bauklasse=Bauklasse.II, bauweise="g", vorgarten=False)
+    assert len(feuermauern(bp)) == 2
+    s = erstelle_studie(bp)
+    dg = dachgeschoss_grundriss(bp, s.grundriss, 2.0)
+    minx, miny, maxx, maxy = dg.bounds
+    assert abs(minx - 0) < 1e-6 and abs(maxx - 8) < 1e-6  # volle Breite
+    assert abs(miny - 2) < 1e-6 and abs(maxy - 12) < 1e-6  # Straße und Hof eingerückt
