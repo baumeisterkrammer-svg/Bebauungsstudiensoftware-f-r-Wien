@@ -25,10 +25,10 @@ Vorabschätzung, keine Rechtsauskunft. Datenquellen: Stadt Wien – data.wien.gv
 
 - Adresssuche Stadt Wien: TimeoutError: The read operation timed out
 - Adresssuche OpenStreetMap: 1 Treffer
-- Widmung: nicht abrufbar (HTTPError: HTTP Error 500: )
-- Zonen: nicht abrufbar (HTTPError: HTTP Error 500: )
-- Bausperre: nicht abrufbar (HTTPError: HTTP Error 500: )
-- Stellplatzzone: nicht abrufbar (HTTPError: HTTP Error 500: )
+- Widmung: nicht abrufbar (RuntimeError: HTTP 500 von https://data.wien.gv.at/daten/geo: )
+- Zonen: nicht abrufbar (RuntimeError: HTTP 500 von https://data.wien.gv.at/daten/geo: )
+- Bausperre: nicht abrufbar (RuntimeError: HTTP 500 von https://data.wien.gv.at/daten/geo: )
+- Stellplatzzone: nicht abrufbar (RuntimeError: HTTP 500 von https://data.wien.gv.at/daten/geo: )
 - Bestand: nicht abrufbar (URLError: <urlopen error timed out>)
 - Kataster: KG 01304, Gst. 453/47, 111 m² (BEV DKM Stichtag 01.10.2026, CC BY 4.0)
 - Kataster: Nutzung Gebäude 111 m²; Straßenkanten keine erkannt; Nachbargrundstücke 453/16 (581 m²)
@@ -43,7 +43,7 @@ Vorabschätzung, keine Rechtsauskunft. Datenquellen: Stadt Wien – data.wien.gv
 - Planbeschriftung: &, &%, (Ten, 00, 02, 12, 19, 2, 20, 4, 45, 46, 5m, 65, 9, <0, =, >, ?, Fo, Go, J, NN, ON, Oo, Oz, PAG, Ss, W, Ww, WwW, YB, \, eo, iv, m, o, oe, ol, se
 - Bauweise „o“ aus der Planbeschriftung gelesen (57 m vom Grundstück, innerhalb derselben Baufluchtlinien)
 - Bebauungsplan: Ausschnitt als Bild beigelegt
-- Umgebung: Baukörpermodell nicht abrufbar (HTTPError: HTTP Error 500: )
+- Umgebung: Baukörpermodell nicht abrufbar (URLError: <urlopen error timed out>)
 - Luftbild: Ebene lb (Stadt Wien, CC BY 4.0)
 
 **Keine Studie:** Widmung None ist kein Bauland.
