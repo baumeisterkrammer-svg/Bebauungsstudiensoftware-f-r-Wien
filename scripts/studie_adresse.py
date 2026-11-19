@@ -18,7 +18,7 @@ from pathlib import Path
 
 from bebauungsstudie import Bauplatz, erstelle_studie
 from bebauungsstudie.ausgabe.paket import exportiere_alles
-from bebauungsstudie.daten import bebauungsplan, kataster
+from bebauungsstudie.daten import bebauungsplan, kataster, planschrift
 from bebauungsstudie.daten.standort import ermittle_standort
 
 
@@ -31,7 +31,8 @@ def main() -> int:
     ap.add_argument("--rechteck", action="store_true", help="Kataster nicht verwenden")
     ap.add_argument("--breite", type=float, default=20.0, help="Grundstücksbreite an der Straße (m)")
     ap.add_argument("--tiefe", type=float, default=40.0, help="Grundstückstiefe (m)")
-    ap.add_argument("--bauweise", default="o", choices=["o", "gk", "ogk", "gr", "g"])
+    ap.add_argument("--bauweise", default=None, choices=["o", "gk", "ogk", "gr", "g"],
+                    help="leer = aus der Planbeschriftung lesen, sonst offen (o)")
     ap.add_argument("--strassenbreite", type=float, default=None,
                     help="Abstand der Fluchtlinien (m), leer = unbekannt")
     a = ap.parse_args()
@@ -68,6 +69,7 @@ def main() -> int:
 
     plan_dateien = []
     flucht = None
+    bauweise, bauweise_text = a.bauweise, (f"{a.bauweise} (Eingabe)" if a.bauweise else None)
     strassenbreite, strassenbreite_text = a.strassenbreite, (
         f"{a.strassenbreite} m (Eingabe)" if a.strassenbreite else "unbekannt")
     try:
@@ -76,8 +78,21 @@ def main() -> int:
         bbox = (min(xs) - rand, min(ys) - rand, max(xs) + rand, max(ys) + rand)
         if gst is not None:
             try:
-                flucht, _, _ = bebauungsplan.lies_fluchtlinien(umriss, kanten, bbox)
+                flucht, fbild, fext = bebauungsplan.lies_fluchtlinien(umriss, kanten, bbox)
                 st.protokoll += flucht.protokoll
+                if bauweise is None:
+                    if planschrift.verfuegbar():
+                        from shapely.geometry import Polygon as _P
+                        mitte = _P(umriss).representative_point()
+                        woerter = planschrift.lies_beschriftung(bebauungsplan._rote_linien(fbild), fext)
+                        st.protokoll.append("Planbeschriftung: " + ", ".join(
+                            sorted({w.text for w in woerter if len(w.text) <= 6})[:40]))
+                        bw, grund = planschrift.bauweise_aus_woertern(woerter, mitte.x, mitte.y)
+                        st.protokoll.append(grund)
+                        if bw:
+                            bauweise, bauweise_text = bw, f"{bw} (aus der Planbeschriftung gelesen, bitte prüfen)"
+                    else:
+                        st.protokoll.append("Texterkennung (tesseract) nicht installiert")
                 if strassenbreite is None and flucht.strassenbreiten:
                     strassenbreite = min(flucht.strassenbreiten.values())
                     strassenbreite_text = (f"{strassenbreite:.1f} m (aus dem Planbild gemessen, "
@@ -96,6 +111,8 @@ def main() -> int:
         except Exception:
             pass
 
+    if bauweise is None:
+        bauweise, bauweise_text = "o", "o (Annahme, im Plandokument prüfen)"
     kopf = [
         f"# Bebauungsstudie {a.adresse}",
         "",
@@ -118,7 +135,7 @@ def main() -> int:
         "## Eingaben und Annahmen (im Plandokument nur als Bild, bitte prüfen)",
         "",
         f"- Grundstück: {grund_text}",
-        f"- Bauweise: {a.bauweise} (Annahme, im Plandokument prüfen)",
+        f"- Bauweise: {bauweise_text}",
         f"- Abstand der Fluchtlinien (Straßenbreite): {strassenbreite_text}",
         "- Bebaubare Fläche: " + ("innerhalb der aus dem Planbild erkannten Baufluchtlinien (bitte prüfen)"
                                   if flucht and flucht.flaeche else "pauschal mit Vorgarten 5 m gerechnet"),
@@ -138,7 +155,7 @@ def main() -> int:
         umriss=umriss,
         strassenkanten=kanten,
         bauklasse=st.bauklasse,
-        bauweise=a.bauweise,
+        bauweise=bauweise,
         fluchtlinienabstand=strassenbreite,
         fluchtlinien_flaeche=flucht.flaeche if flucht else None,
         schutzzone=st.schutzzone,

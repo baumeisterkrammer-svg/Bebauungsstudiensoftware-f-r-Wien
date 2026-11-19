@@ -25,8 +25,8 @@ on:
         description: "Grundstückstiefe in m (nur ohne Kataster)"
         default: "40"
       bauweise:
-        description: "Bauweise laut Plandokument (o, gk, ogk, gr, g)"
-        default: "o"
+        description: "Bauweise (o, gk, ogk, gr, g); leer = aus dem Plan lesen"
+        default: ""
       strassenbreite:
         description: "Abstand der Fluchtlinien in m (leer = unbekannt)"
         default: ""
@@ -52,7 +52,7 @@ jobs:
       ADRESSE: ${{ github.event.inputs.adresse || 'Olbrichgasse 9, 1120 Wien' }}
       BREITE: ${{ github.event.inputs.breite || '20' }}
       TIEFE: ${{ github.event.inputs.tiefe || '40' }}
-      BAUWEISE: ${{ github.event.inputs.bauweise || 'o' }}
+      BAUWEISE: ${{ github.event.inputs.bauweise }}
       STRASSENBREITE: ${{ github.event.inputs.strassenbreite }}
       GRUNDSTUECKE: ${{ github.event.inputs.grundstuecke }}
       RECHTECK: ${{ github.event.inputs.rechteck }}
@@ -62,13 +62,16 @@ jobs:
         with:
           python-version: "3.12"
       - name: Installieren
-        run: pip install -e ".[dev]"
+        run: |
+          sudo apt-get install -y -qq tesseract-ocr > /dev/null
+          pip install -e ".[dev]"
       - name: Tests
         run: pytest -q
       - name: Studie rechnen
         timeout-minutes: 8
         run: |
-          ARGS="--breite $BREITE --tiefe $TIEFE --bauweise $BAUWEISE"
+          ARGS="--breite $BREITE --tiefe $TIEFE"
+          if [ -n "$BAUWEISE" ]; then ARGS="$ARGS --bauweise $BAUWEISE"; fi
           if [ -n "$STRASSENBREITE" ]; then ARGS="$ARGS --strassenbreite $STRASSENBREITE"; fi
           if [ -n "$GRUNDSTUECKE" ]; then ARGS="$ARGS --grundstuecke $GRUNDSTUECKE"; fi
           if [ "$RECHTECK" = "true" ]; then ARGS="$ARGS --rechteck"; fi

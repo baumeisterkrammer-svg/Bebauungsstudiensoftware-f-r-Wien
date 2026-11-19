@@ -39,3 +39,23 @@ def test_fluchtlinien_und_strassenbreite():
     assert abs(innen.area - 14 * 15) < 25, erg.protokoll
     assert innen.contains(Polygon([(4, 6), (16, 6), (16, 19), (4, 19)]))
     assert erg.strassenbreiten == {0: 12.0}, erg.protokoll
+
+
+def test_planschrift_drehung_zurueck():
+    from PIL import Image
+    from bebauungsstudie.daten.planschrift import zurueck
+    b = np.full((100, 160), 255, np.uint8)
+    b[20:24, 120:124] = 0  # Marke bei (x=121.5, y=21.5)
+    for winkel in (0, 30, 90, 135):
+        g = Image.fromarray(b).rotate(winkel, expand=True, fillcolor=255)
+        ys, xs = np.nonzero(np.asarray(g) < 128)
+        x, y = zurueck(xs.mean(), ys.mean(), winkel, g.size, (160, 100))
+        assert abs(x - 121.5) < 1.5 and abs(y - 21.5) < 1.5, (winkel, x, y)
+
+
+def test_bauweise_aus_woertern():
+    from bebauungsstudie.daten.planschrift import Wort, bauweise_aus_woertern
+    w = [Wort("W", 5, 5, 90), Wort("I", 6, 5, 90), Wort("o", 8, 5, 85), Wort("12.00", 0, -6, 90),
+         Wort("WIo", 9, 5, 70), Wort("gk", 200, 200, 90)]
+    bw, text = bauweise_aus_woertern(w, 0, 0)
+    assert bw == "o", text
