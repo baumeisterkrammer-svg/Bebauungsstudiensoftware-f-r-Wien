@@ -23,7 +23,7 @@ Vorabschätzung, keine Rechtsauskunft. Datenquellen: Stadt Wien – data.wien.gv
 
 ## Protokoll
 
-- Adresssuche Stadt Wien: RemoteDisconnected: Remote end closed connection without response
+- Adresssuche Stadt Wien: HTTPError: HTTP Error 404: Not Found
 - Adresssuche OpenStreetMap: 1 Treffer
 - Widmung: W1 (Wohngebiet Bauklasse 1)
 - Schutzzone: nein, Wohnzone: nein
