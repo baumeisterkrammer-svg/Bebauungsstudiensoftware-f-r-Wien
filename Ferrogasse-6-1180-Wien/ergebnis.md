@@ -52,8 +52,8 @@ Bebaute Fläche m²: 113.1  [BO für Wien § 79 Abs. 1, 3, Bebauungsplan Baufluc
 Gebäudehöhe m: 10.5  [BO für Wien § 75 Abs. 2, Bebauungsplan Besondere Bestimmung]  maßgeblich: im Bebauungsplan festgesetzte Höhe mit 10.5 m
 Vollgeschoße: 3  [BO für Wien § 75 Abs. 2, Bebauungsplan Besondere Bestimmung]  10.5 m / 3.0 m Geschoßhöhe (Annahme), abgerundet
 Dachgeschoße: [7.06]  [BO für Wien § 81 Abs. 1, 4]  Trakttiefe 12.064014850941021 m, Umriss 45.0°, bis 9.0 m über GH: 1 Dachgeschoß(e)
-BGF m²: 404.9  [BO für Wien § 75 Abs. 2, Bebauungsplan Besondere Bestimmung, BO für Wien § 81 Abs. 4, BO für Wien § 81 Abs. 1]  113.1 m² × 3 Vollgeschoße + 65.5 m² Dachgeschoße
-Nutzfläche m²: 303.7  [Annahme Nutzflächenfaktor]  BGF × 0.75
+BGF m²: 404.8  [BO für Wien § 75 Abs. 2, Bebauungsplan Besondere Bestimmung, BO für Wien § 81 Abs. 4, BO für Wien § 81 Abs. 1]  113.1 m² × 3 Vollgeschoße + 65.4 m² Dachgeschoße
+Nutzfläche m²: 303.6  [Annahme Nutzflächenfaktor]  BGF × 0.75
 Wohnungen: 4  [Annahme Wohnungsgröße]  304 m² / 65.0 m² je Wohnung
 Pflichtstellplätze: 3  [WGarG 2008 § 50]  304 m² WNF / 100 = 3 Regelbedarf, × 100 % = 3
 Freifläche m²: 12.9  [BO für Wien § 79]  Bauplatz minus bebaute Fläche
