@@ -87,7 +87,8 @@ def main() -> int:
                         woerter = planschrift.lies_beschriftung(bebauungsplan._rote_linien(fbild), fext)
                         st.protokoll.append("Planbeschriftung: " + ", ".join(
                             sorted({w.text for w in woerter if len(w.text) <= 6})[:40]))
-                        bw, grund = planschrift.bauweise_aus_woertern(woerter, mitte.x, mitte.y)
+                        gebiet = _P(flucht.flaeche) if flucht.flaeche else None
+                        bw, grund = planschrift.bauweise_aus_woertern(woerter, mitte.x, mitte.y, gebiet=gebiet)
                         st.protokoll.append(grund)
                         if bw:
                             bauweise, bauweise_text = bw, f"{bw} (aus der Planbeschriftung gelesen, bitte prüfen)"

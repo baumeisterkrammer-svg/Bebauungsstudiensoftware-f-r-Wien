@@ -100,8 +100,12 @@ def lies_beschriftung(rot_maske: np.ndarray, ext, schritt: int = 15, vergroesser
     return ergebnis
 
 
-def bauweise_aus_woertern(woerter: list[Wort], x: float, y: float, radius: float = 20.0):
-    """Nächstgelegene Bauweisen-Angabe zum Punkt (x, y), mit Begründung."""
+def bauweise_aus_woertern(woerter: list[Wort], x: float, y: float, radius: float = 20.0, gebiet=None):
+    """Bauweisen-Angabe zum Grundstück, mit Begründung.
+
+    `gebiet`: Fläche innerhalb der Baufluchtlinien (shapely). Die Beschriftung
+    gilt für diese ganze Fläche, auch wenn sie beim Nachbarn steht."""
+    from shapely.geometry import Point
     import re
 
     muster = re.compile(r"^(?:W|GB|GS|IG)?(?:III|II|IV|VI|I|V|1|l)?(ogk|gk|gr|o|g)$")
@@ -113,7 +117,8 @@ def bauweise_aus_woertern(woerter: list[Wort], x: float, y: float, radius: float
         m = muster.match(t)
         if m:
             d = math.hypot(w.x - x, w.y - y)
-            if d <= radius:
+            im_gebiet = gebiet is not None and gebiet.buffer(3).contains(Point(w.x, w.y))
+            if d <= radius or im_gebiet:
                 kandidaten.append((d, m.group(1), w))
     if not kandidaten:
         return None, "keine Bauweisen-Beschriftung im Umkreis erkannt"
@@ -123,4 +128,5 @@ def bauweise_aus_woertern(woerter: list[Wort], x: float, y: float, radius: float
         stimmen[bw] = stimmen.get(bw, 0) + w.sicherheit / (1 + d / 10)
     bester = max(stimmen, key=stimmen.get)
     d = min(d for d, bw, _ in kandidaten if bw == bester)
-    return bester, f"Bauweise „{bester}“ aus der Planbeschriftung gelesen ({d:.0f} m vom Grundstück)"
+    return bester, (f"Bauweise „{bester}“ aus der Planbeschriftung gelesen "
+                    f"({d:.0f} m vom Grundstück, innerhalb derselben Baufluchtlinien)")
