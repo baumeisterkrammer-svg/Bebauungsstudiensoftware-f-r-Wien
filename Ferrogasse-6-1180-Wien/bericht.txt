@@ -20,3 +20,19 @@ Hinweise:
 - Schutzzone: Straßenbreite begrenzt die Höhe nicht (§ 75 Abs. 6).
 - Dachaufbauten nach § 81 Abs. 6 nicht berücksichtigt.
 - Gilt, wenn der Bebauungsplan gärtnerische Ausgestaltung vorsieht.
+
+
+Nachverdichtung (Bestand erhalten)
+
+Bestand Grundfläche m²: 121.7  Baukörper am Bauplatz laut Baukörpermodell
+Bestand BGF m² (geschätzt): 355.1  Grundfläche × Geschoße (1, 2, 3), aus Höhe / 3.2 m geschätzt
+Aufstockung BGF m²: 0  Bestand in der bebaubaren Fläche auf 3 Vollgeschoße erhöht
+Dachgeschoßausbau BGF m²: 65.1  Dachgeschoße wie beim Neubau über den voll hohen Teilen
+Zubau im Hof BGF m²: 0  freie bebaubare Fläche × 3 Vollgeschoße
+Zusätzliche BGF m²: 65.1  Aufstockung + Dachgeschoßausbau + Zubau (Differenz zum Bestand)
+BGF nach Nachverdichtung m²: 420.2  Bestand + zusätzliche BGF
+Zusätzliche Wohnungen: 0  zusätzliche BGF × 0.75 / 65.0 m²
+Vergleich Neubau BGF m²: 404.8  Neubau nach Abbruch; Differenz zur Nachverdichtung -15 m²
+
+Hinweise:
+- Bestandsgeschoße aus der Gebäudehöhe des Baukörpermodells geschätzt; mit Bestandsplänen abgleichen.

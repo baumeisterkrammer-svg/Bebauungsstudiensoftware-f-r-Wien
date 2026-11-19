@@ -23,7 +23,7 @@ Vorabschätzung, keine Rechtsauskunft. Datenquellen: Stadt Wien – data.wien.gv
 
 ## Protokoll
 
-- Adresssuche Stadt Wien: HTTPError: HTTP Error 404: Not Found
+- Adresssuche Stadt Wien: RuntimeError: HTTP 404 von https://data.wien.gv.at/daten/OGDAddressService/rest/AddressSearch: <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"> <html xmlns="http://www.w3.org/1999/xhtml" lang="de" xml:lang="de"> <head><meta name="viewport" content="width=device-width, initial-scale=1.0" /> <link rel="stylesheet" href=
 - Adresssuche OpenStreetMap: 1 Treffer
 - Widmung: W2 (Wohngebiet Bauklasse 2)
 - Schutzzone: ja, Wohnzone: nein
@@ -41,6 +41,27 @@ Vorabschätzung, keine Rechtsauskunft. Datenquellen: Stadt Wien – data.wien.gv
 - Bauweise „g“ aus der Planbeschriftung gelesen (4 m vom Grundstück, innerhalb derselben Baufluchtlinien)
 - Gebäudehöhe 10.5 m aus der Planbeschriftung gelesen (45 m vom Grundstück)
 - Bebauungsplan: Ausschnitt als Bild beigelegt
+- Umgebung: 61 Baukörper im Umkreis von 53 m (Stadt Wien, Baukörpermodell)
+- Luftbild: Ebene lb (Stadt Wien, CC BY 4.0)
+
+## Vergleich Neubau und Nachverdichtung
+
+| | Neubau (Abbruch) | Nachverdichtung (Bestand erhalten) |
+|---|---:|---:|
+| BGF gesamt | 405 m² | 420 m² |
+| davon neu | 405 m² | 65 m² |
+| Wohnungen neu | 4 | 0 |
+
+- Bestand Grundfläche m²: 121.7 – Baukörper am Bauplatz laut Baukörpermodell
+- Bestand BGF m² (geschätzt): 355.1 – Grundfläche × Geschoße (1, 2, 3), aus Höhe / 3.2 m geschätzt
+- Aufstockung BGF m²: 0 – Bestand in der bebaubaren Fläche auf 3 Vollgeschoße erhöht
+- Dachgeschoßausbau BGF m²: 65.1 – Dachgeschoße wie beim Neubau über den voll hohen Teilen
+- Zubau im Hof BGF m²: 0 – freie bebaubare Fläche × 3 Vollgeschoße
+- Zusätzliche BGF m²: 65.1 – Aufstockung + Dachgeschoßausbau + Zubau (Differenz zum Bestand)
+- BGF nach Nachverdichtung m²: 420.2 – Bestand + zusätzliche BGF
+- Zusätzliche Wohnungen: 0 – zusätzliche BGF × 0.75 / 65.0 m²
+- Vergleich Neubau BGF m²: 404.8 – Neubau nach Abbruch; Differenz zur Nachverdichtung -15 m²
+- Hinweis: Bestandsgeschoße aus der Gebäudehöhe des Baukörpermodells geschätzt; mit Bestandsplänen abgleichen.
 
 ## Ergebnis
 
@@ -67,13 +88,31 @@ Hinweise:
 - Schutzzone: Straßenbreite begrenzt die Höhe nicht (§ 75 Abs. 6).
 - Dachaufbauten nach § 81 Abs. 6 nicht berücksichtigt.
 - Gilt, wenn der Bebauungsplan gärtnerische Ausgestaltung vorsieht.
+
+
+Nachverdichtung (Bestand erhalten)
+
+Bestand Grundfläche m²: 121.7  Baukörper am Bauplatz laut Baukörpermodell
+Bestand BGF m² (geschätzt): 355.1  Grundfläche × Geschoße (1, 2, 3), aus Höhe / 3.2 m geschätzt
+Aufstockung BGF m²: 0  Bestand in der bebaubaren Fläche auf 3 Vollgeschoße erhöht
+Dachgeschoßausbau BGF m²: 65.1  Dachgeschoße wie beim Neubau über den voll hohen Teilen
+Zubau im Hof BGF m²: 0  freie bebaubare Fläche × 3 Vollgeschoße
+Zusätzliche BGF m²: 65.1  Aufstockung + Dachgeschoßausbau + Zubau (Differenz zum Bestand)
+BGF nach Nachverdichtung m²: 420.2  Bestand + zusätzliche BGF
+Zusätzliche Wohnungen: 0  zusätzliche BGF × 0.75 / 65.0 m²
+Vergleich Neubau BGF m²: 404.8  Neubau nach Abbruch; Differenz zur Nachverdichtung -15 m²
+
+Hinweise:
+- Bestandsgeschoße aus der Gebäudehöhe des Baukörpermodells geschätzt; mit Bestandsplänen abgleichen.
 ```
 
 - plaene.pdf
+- umgebung.png
 - lageplan.png
 - schnitt.png
 - ansicht.png
 - axonometrie.png
+- nachverdichtung.png
 - modell.ifc
 - plaene.dxf
 - bericht.txt
