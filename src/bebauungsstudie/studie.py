@@ -187,7 +187,11 @@ def dachgeschoss_grundriss(bp: Bauplatz, grundriss: BaseGeometry, einzug: float)
             if any(m.distance(mitte) < 0.1 for m in mauern):
                 continue
             abzug.append(seg.buffer(einzug, cap_style="flat", join_style="mitre"))
-    return grundriss.difference(unary_union(abzug)) if abzug else grundriss
+    if not abzug:
+        return grundriss
+    rest = grundriss.difference(unary_union(abzug))
+    # schmale Reststreifen an schrägen Kanten entfernen
+    return rest.buffer(-0.3, join_style="mitre").buffer(0.3, join_style="mitre").intersection(rest)
 
 
 def erstelle_studie(bp: Bauplatz, annahmen: Annahmen | None = None) -> Studie:
