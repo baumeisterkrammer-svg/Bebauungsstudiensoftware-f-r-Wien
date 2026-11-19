@@ -29,7 +29,7 @@ Vorabschätzung, keine Rechtsauskunft. Datenquellen: Stadt Wien – data.wien.gv
 - Zonen: nicht abrufbar (HTTPError: HTTP Error 500: )
 - Bausperre: nicht abrufbar (HTTPError: HTTP Error 500: )
 - Stellplatzzone: nicht abrufbar (HTTPError: HTTP Error 500: )
-- Bestand: nicht abrufbar (HTTPError: HTTP Error 500: )
+- Bestand: nicht abrufbar (URLError: <urlopen error timed out>)
 - Kataster: KG 01304, Gst. 453/47, 111 m² (BEV DKM Stichtag 01.10.2026, CC BY 4.0)
 - Kataster: Nutzung Gebäude 111 m²; Straßenkanten keine erkannt; Nachbargrundstücke 453/16 (581 m²)
 - Kataster: Grundstück 453/47 ist überbaut und grenzt nicht an die Straße; mit dem einzigen Nachbargrundstück 453/16 zum Bauplatz zusammengelegt (bitte prüfen).
