@@ -179,6 +179,15 @@ def grundstueck_am_punkt(x: float, y: float, weitere: tuple[str, ...] = ()) -> G
             "Kataster: Nutzung " + ", ".join(f"{k} {v:.0f} m²" for k, v in gst.nutzungen.items())
             + f"; Straßenkanten {sorted(gst.strassenkanten) or 'keine erkannt'}"
             + "; Nachbargrundstücke " + ", ".join(f"{n} ({f:.0f} m²)" for n, f in gst.nachbarn))
+        if (gst.nutzungen.get("Gebäude", 0) > 0.8 * gst.flaeche and not gst.strassenkanten
+                and len(gst.nachbarn) == 1 and not weitere):
+            n = gst.nachbarn[0][0]
+            gst2 = grundstueck_am_punkt(x, y, (n,))
+            gst2.protokoll = gst.protokoll + [
+                f"Kataster: Grundstück {gst.gnr} ist überbaut und grenzt nicht an die Straße; "
+                f"mit dem einzigen Nachbargrundstück {n} zum Bauplatz zusammengelegt (bitte prüfen)."
+            ] + gst2.protokoll[1:]
+            return gst2
         if gst.nutzungen.get("Gebäude", 0) > 0.8 * gst.flaeche:
             gst.protokoll.append(
                 "Kataster: Das Grundstück am Adresspunkt ist fast ganz überbaut. Der Bauplatz "

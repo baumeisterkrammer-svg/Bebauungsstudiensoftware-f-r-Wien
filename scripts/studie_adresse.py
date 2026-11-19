@@ -78,6 +78,10 @@ def main() -> int:
             st.protokoll.append("Bebauungsplan: Ausschnitt als Bild beigelegt")
     except Exception as e:
         st.protokoll.append(f"Bebauungsplan-Ausschnitt nicht abrufbar ({type(e).__name__}: {e})")
+        try:
+            (out / "wmts_capabilities.xml").write_text(bebauungsplan._capabilities(), encoding="utf-8")
+        except Exception:
+            pass
 
     kopf = [
         f"# Bebauungsstudie {a.adresse}",

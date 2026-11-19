@@ -68,12 +68,15 @@ def ebene(name: str, xml: str | None = None) -> Ebene:
     vorlage = re.search(r'<ResourceURL[^>]*template="([^"]+)"', lay).group(1)
     stil = re.search(r"<Style[^>]*>.*?<ows:Identifier>([^<]+)</ows:Identifier>", lay, re.S).group(1)
     sets = re.findall(r"<TileMatrixSet>([^<]+)</TileMatrixSet>", lay)
+    bloecke = {}
+    for blk in re.findall(r"<TileMatrixSet(?:\s[^>]*)?>(.*?)</TileMatrixSet>", xml, re.S):
+        if "<TileMatrix>" in blk or "<TileMatrix " in blk:
+            ident = re.search(r"<ows:Identifier>([^<]+)</ows:Identifier>", blk).group(1).strip()
+            bloecke[ident] = blk
     for ms in sets:
-        tms = re.search(r"<TileMatrixSet>\s*<ows:Identifier>" + re.escape(ms)
-                        + r"</ows:Identifier>(.*?)</TileMatrixSet>", xml, re.S)
-        if not tms:
+        body = bloecke.get(ms.strip())
+        if not body:
             continue
-        body = tms.group(1)
         crs_text = re.search(r"<ows:SupportedCRS>([^<]+)<", body).group(1)
         crs = int(re.findall(r"(\d+)", crs_text)[-1])
         matrizen = []
@@ -87,7 +90,7 @@ def ebene(name: str, xml: str | None = None) -> Ebene:
                                    int(g("MatrixHeight"))))
         if matrizen and crs != 4326:
             return Ebene(name, vorlage, stil, ms, crs, matrizen)
-    raise LookupError(f"Kein projiziertes TileMatrixSet für {name}")
+    raise LookupError(f"Kein projiziertes TileMatrixSet für {name} (Sets {sets}, bekannt {list(bloecke)})")
 
 
 def ausschnitt(name: str, bbox31256: tuple[float, float, float, float],
