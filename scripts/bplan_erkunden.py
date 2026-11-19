@@ -1,54 +1,34 @@
-"""Erkundung: Woher kommen Bauweise, Fluchtlinien, Besondere Bestimmungen maschinenlesbar?"""
+"""Erkundung 2: Plan-Viewer-Endpunkte, WMTS, Plandokument-WMS."""
 import re, html, json, urllib.request, urllib.parse
 UA = {"User-Agent": "Mozilla/5.0 (bebauungsstudie/0.1)"}
+X, Y = -2309.34, 336954.0  # Olbrichgasse 9, EPSG:31256
 
 def hole(url, t=40):
     with urllib.request.urlopen(urllib.request.Request(url, headers=UA), timeout=t) as r:
-        return r.read().decode("utf-8", "replace"), r.geturl()
+        return r.read().decode("utf-8", "replace"), r.geturl(), r.headers.get("Content-Type")
 
-def text(h):
-    h = re.sub(r"(?is)<(script|style).*?</\1>", " ", h)
-    return re.sub(r"\s+", " ", html.unescape(re.sub(r"<[^>]+>", " ", h)))
-
-for url in ["https://www.wien.gv.at/stadtentwicklung/flaechenwidmung/geodaten.html",
-            "https://www.wien.gv.at/stadtentwicklung/flaechenwidmung/hilfetext/daten.html"]:
+def zeige(titel, url, n=3000):
     try:
-        h, u = hole(url)
-        i = h.find("<main") if "<main" in h else 0
-        print("BP SEITE", url, text(h[i:])[:5000], flush=True)
-        print("BP LINKS", url, sorted(set(re.findall(r'href="([^"]+)"', h)))[:150], flush=True)
+        t, u, ct = hole(url)
+        print("BP", titel, ct, len(t), re.sub(r"\s+", " ", t[:n]), flush=True)
+        return t
     except Exception as e:
-        print("BP SEITE", url, "FEHLER", e, flush=True)
+        print("BP", titel, "FEHLER", e, flush=True); return ""
 
-try:
-    h, _ = hole("https://data.europa.eu/api/hub/search/datasets/d8ed7c1d-2d49-476d-b0c6-711d4fcf9f0f")
-    d = json.loads(h)["result"]
-    print("BP EU", json.dumps({k: d.get(k) for k in ("title", "description")}, ensure_ascii=False)[:2500], flush=True)
-    for x in d.get("distributions", []):
-        print("BP EU-DIST", x.get("title"), x.get("access_url"), x.get("download_url"), x.get("format"), flush=True)
-except Exception as e:
-    print("BP EU FEHLER", e, flush=True)
+js = zeige("CTRL", "https://www.wien.gv.at/flaechenwidmung/public/ControlScript.ctrl?r=", 0)
+for m in sorted(set(re.findall(r"""["']([^"'\s]{0,80}(?:\.aspx|\.ashx|\.ctrl|\.asmx|\.svc|wmts|WMTS|wms|WMS|Info|info|Abfrage|abfrage|GetFeature|tile|Tile)[^"'\s]{0,120})["']""", js)))[:200]:
+    print("BP JS-URL", m, flush=True)
+for kw in ["InfoAbfrage", "infoabfrage", "getInfo", "GetInfo", "featureinfo", "FeatureInfo", "Bauweise", "Fluchtlinie", "plandokument", "Plandokument"]:
+    for m in list(re.finditer(kw, js))[:3]:
+        print("BP JS-KONTEXT", kw, re.sub(r"\s+", " ", js[max(0, m.start() - 250): m.end() + 250]), flush=True)
 
-# Plan-Viewer: Skripte nach Dienst-URLs durchsuchen
-gesehen = set()
-muster = re.compile(r"""["'](https?://[^"']*?(?:MapServer|FeatureServer|wms|wfs|WMS|WFS|geoserver|arcgis|rest/services|/ogc|\.json|/api/)[^"']*)["']""")
-for start in ["https://www.wien.gv.at/flaechenwidmung/public/", "https://www.wien.gv.at/flaechenwidmung/public/start.aspx",
-              "https://www.wien.gv.at/stadtplan/", "https://www.wien.gv.at/flaechenwidmung/public/index.html"]:
+for pid in ["stadt-wien_flchenwidmungsundbebauungsplanwien", "4111e2d8-1729-4953-899a-c55bc382857e",
+            "a14e57c4-ea1c-4a7a-863a-b874ccf23790", "dc82da19-6878-46e8-a653-4966fa4dd108"]:
+    t = zeige("CKAN " + pid, "https://www.data.gv.at/katalog/api/3/action/package_show?id=" + pid, 0)
     try:
-        h, u = hole(start)
+        r = json.loads(t)["result"]
+        print("BP PAKET", r.get("title"), re.sub(r"\s+", " ", r.get("notes") or "")[:1200], flush=True)
+        for res in r.get("resources", []):
+            print("BP RES", res.get("name"), res.get("format"), res.get("url"), flush=True)
     except Exception as e:
-        print("BP VIEWER", start, "FEHLER", e, flush=True); continue
-    print("BP VIEWER", start, "->", u, len(h), text(h)[:400], flush=True)
-    urls = set(muster.findall(h))
-    for s in re.findall(r"""<script[^>]+src=["']([^"']+)["']""", h) + re.findall(r"""<iframe[^>]+src=["']([^"']+)["']""", h):
-        s = urllib.parse.urljoin(u, s)
-        if s in gesehen: continue
-        gesehen.add(s)
-        try:
-            js, _ = hole(s)
-            treffer = set(muster.findall(js))
-            print("BP SKRIPT", s, len(js), sorted(treffer)[:40], flush=True)
-            urls |= treffer
-        except Exception as e:
-            print("BP SKRIPT", s, "FEHLER", e, flush=True)
-    print("BP DIENSTE", start, sorted(urls)[:80], flush=True)
+        print("BP PAKET FEHLER", e, flush=True)
