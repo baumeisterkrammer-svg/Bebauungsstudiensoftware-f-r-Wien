@@ -32,7 +32,11 @@ def _hole(url: str, params: dict, timeout: float = 20, versuche: int = 3) -> byt
                 return r.read()
         except urllib.error.HTTPError as e:
             if e.code < 500 or i == versuche - 1:
-                raise
+                try:
+                    text = e.read()[:300].decode("utf-8", "replace")
+                except Exception:
+                    text = ""
+                raise RuntimeError(f"HTTP {e.code} von {url}: {' '.join(text.split())}") from e
         except (TimeoutError, urllib.error.URLError):
             if i == versuche - 1:
                 raise
