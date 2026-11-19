@@ -14,7 +14,10 @@ import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt  # noqa: E402
 from matplotlib.backends.backend_pdf import PdfPages  # noqa: E402
+import numpy as np  # noqa: E402
+from matplotlib.transforms import Affine2D  # noqa: E402
 from mpl_toolkits.mplot3d.art3d import Poly3DCollection  # noqa: E402
+from shapely import affinity  # noqa: E402
 from shapely.geometry import LineString, Polygon  # noqa: E402
 from shapely.geometry.base import BaseGeometry  # noqa: E402
 
@@ -26,6 +29,29 @@ FARBE_BAU = "#c8553d"
 FARBE_DG = "#e9a06b"
 FARBE_GRENZE = "#222222"
 FARBE_HILF = "#5b7db1"
+FARBE_BESTAND = "#d9d9d9"
+
+
+def _kontext_lokal(mm: Massenmodell):
+    """Nachbargebäude im lokalen System: Liste (Polygon, Höhe, am Bauplatz)."""
+    k = mm.kontext
+    if k is None:
+        return []
+    mat = list(mm.lokal_matrix())
+    return [(affinity.affine_transform(b.grundriss, mat), b.hoehe, b.am_bauplatz) for b in k.bestand]
+
+
+def _luftbild(ax, mm: Massenmodell, alpha: float = 1.0):
+    k = mm.kontext
+    if k is None or k.luftbild is None:
+        return False
+    a, b, d, e, xoff, yoff = mm.lokal_matrix()
+    m = Affine2D(np.array([[a, b, xoff], [d, e, yoff], [0, 0, 1]]))
+    im = ax.imshow(k.luftbild, extent=k.luftbild_ausdehnung, origin="upper", alpha=alpha,
+                   interpolation="bilinear", zorder=0)
+    im.set_transform(m + ax.transData)
+    im.set_clip_path(ax.patch)
+    return True
 
 
 def _polys(geom: BaseGeometry) -> list[Polygon]:
@@ -137,6 +163,39 @@ def seite_lageplan(studie: Studie, mm: Massenmodell):
     return fig
 
 
+def seite_umgebung(studie: Studie, mm: Massenmodell):
+    bp = mm.lokal(mm.bauplatz)
+    x0, y0, x1, y1 = bp.bounds
+    rand = 28
+    fig, ax = _neue_seite("Lageplan mit Umgebung", studie, x0 - rand, x1 + rand, y0 - rand, y1 + rand)
+    hat_bild = _luftbild(ax, mm)
+    for poly, h, am in _kontext_lokal(mm):
+        if am:
+            ax.fill(*poly.exterior.xy, facecolor="none", edgecolor="#555", hatch="///", lw=0.6,
+                    zorder=2, label="Bestand am Bauplatz")
+            continue
+        ax.fill(*poly.exterior.xy, facecolor=FARBE_BESTAND, edgecolor="#444", lw=0.5,
+                alpha=0.75 if hat_bild else 1.0, zorder=2, label="Nachbarbebauung (Höhe ü. Gelände)")
+        if poly.area > 25:
+            c = poly.representative_point()
+            ax.text(c.x, c.y, f"{h:.1f}", ha="center", va="center", fontsize=6.5, color="#222", zorder=3)
+    ax.fill(*bp.exterior.xy, facecolor="white", alpha=0.25, zorder=3)
+    ax.plot(*bp.exterior.xy, color="#d00000", lw=1.8, zorder=5, label="Bauplatz")
+    for p in _polys(mm.lokal(mm.bebaubar)):
+        ax.fill(*p.exterior.xy, color=FARBE_BAU, alpha=0.9, zorder=4, label="Neubau (Regelgeschoß)")
+    gh = mm.gesamthoehe
+    c = bp.representative_point()
+    ax.text(c.x, c.y, f"Neubau\n{gh:.1f}", ha="center", va="center", fontsize=8, color="white",
+            weight="bold", zorder=6)
+    handles, labels = ax.get_legend_handles_labels()
+    uniq = dict(zip(labels, handles))
+    ax.legend(uniq.values(), uniq.keys(), loc="upper left", fontsize=9, framealpha=0.9)
+    if hat_bild:
+        fig.text(0.04, 0.035, "Luftbild und Baukörpermodell: Stadt Wien – data.wien.gv.at (CC BY 4.0); "
+                 "Grundstück: BEV (CC BY 4.0)", fontsize=7, color="#555")
+    return fig
+
+
 def _schnittintervalle(geom: BaseGeometry, u: float) -> list[tuple[float, float]]:
     big = 1e4
     linie = LineString([(u, -big), (u, big)])
@@ -226,38 +285,83 @@ def seite_ansicht(studie: Studie, mm: Massenmodell):
     return fig
 
 
+def _prisma(ring, z0, z1):
+    flaechen = [[(x, y, z0) for x, y in ring], [(x, y, z1) for x, y in ring]]
+    for i in range(len(ring)):
+        (xa, ya), (xb, yb) = ring[i], ring[(i + 1) % len(ring)]
+        flaechen.append([(xa, ya, z0), (xb, yb, z0), (xb, yb, z1), (xa, ya, z1)])
+    return flaechen
+
+
 def seite_axonometrie(studie: Studie, mm: Massenmodell):
     fig = plt.figure(figsize=A3)
     ax = fig.add_axes(FREI, projection="3d")
-    _plankopf(fig, "Axonometrie", studie, "")
+    _plankopf(fig, "Axonometrie im Bestand" if mm.kontext else "Axonometrie", studie, "")
     ax.computed_zorder = False
+    elev, azim = 30, -60
+    blick = np.array([math.cos(math.radians(elev)) * math.cos(math.radians(azim)),
+                      math.cos(math.radians(elev)) * math.sin(math.radians(azim)),
+                      math.sin(math.radians(elev))])
     bp = mm.lokal(mm.bauplatz)
+    x0, y0, x1, y1 = bp.bounds
+    kontext = _kontext_lokal(mm)
+    r = max(x1 - x0, y1 - y0, mm.gesamthoehe) * (2.0 if kontext else 0.8)
+    cx, cy = (x0 + x1) / 2, (y0 + y1) / 2
+
+    k = mm.kontext
+    if k is not None and k.luftbild is not None:
+        # Boden mit Luftbild: Bildpunkte ins lokale System, auf den Ausschnitt begrenzt
+        img = k.luftbild
+        schritt = max(1, int(max(img.shape[:2]) / 160))
+        bild = img[::schritt, ::schritt] / 255.0
+        hh, ww = bild.shape[:2]
+        xmin, xmax, ymin, ymax = k.luftbild_ausdehnung
+        gx, gy = np.meshgrid(np.linspace(xmin, xmax, ww), np.linspace(ymax, ymin, hh))
+        a, b, d, e, xoff, yoff = mm.lokal_matrix()
+        u, v = a * gx + b * gy + xoff, d * gx + e * gy + yoff
+        innen = (np.abs(u - cx) <= r / 2) & (np.abs(v - cy) <= r / 2)
+        farben = np.dstack([bild[..., :3], np.where(innen, 1.0, 0.0)])
+        ax.plot_surface(u, v, np.zeros_like(u), facecolors=farben, rstride=1, cstride=1,
+                        shade=False, linewidth=0, antialiased=False, zorder=0)
     xs, ys = bp.exterior.xy
-    ax.plot(xs, ys, [0] * len(xs), color=FARBE_GRENZE, lw=1.4, zorder=0)
+    ax.plot(xs, ys, [0.05] * len(xs), color="#d00000", lw=1.6, zorder=1)
+
+    koerper = []
+    for poly, h, am in kontext:
+        if am:
+            continue
+        c = poly.centroid
+        if abs(c.x - cx) > r / 2 or abs(c.y - cy) > r / 2:
+            continue
+        ring = list(poly.exterior.coords)[:-1]
+        koerper.append((np.dot([c.x, c.y, h / 2], blick), _prisma(ring, 0, h), FARBE_BESTAND, "#888", 1.0))
     for g in mm.geschosse:
         farbe = FARBE_DG if g.dachgeschoss else FARBE_BAU
         for p in _polys(mm.lokal(g.flaeche)):
-            ring = list(p.exterior.coords)[:-1]
+            c = p.centroid
             z0, z1 = g.ok_fussboden, g.ok_fussboden + g.hoehe
-            flaechen = [[(x, y, z0) for x, y in ring], [(x, y, z1) for x, y in ring]]
-            for i in range(len(ring)):
-                (xa, ya), (xb, yb) = ring[i], ring[(i + 1) % len(ring)]
-                flaechen.append([(xa, ya, z0), (xb, yb, z0), (xb, yb, z1), (xa, ya, z1)])
-            ax.add_collection3d(Poly3DCollection(flaechen, facecolor=farbe,
-                                                 edgecolor="white", lw=0.6, alpha=0.95))
-    x0, y0, x1, y1 = bp.bounds
-    r = max(x1 - x0, y1 - y0, mm.gesamthoehe) * 0.8
-    cx, cy = (x0 + x1) / 2, (y0 + y1) / 2
+            koerper.append((np.dot([c.x, c.y, (z0 + z1) / 2], blick),
+                            _prisma(list(p.exterior.coords)[:-1], z0, z1), farbe, "white", 1.0))
+    tiefen = [t for t, *_ in koerper] or [0]
+    lo, hi = min(tiefen), max(tiefen)
+    for t, flaechen, farbe, kante, alpha in sorted(koerper, key=lambda k_: k_[0]):
+        ax.add_collection3d(Poly3DCollection(flaechen, facecolor=farbe, edgecolor=kante, lw=0.5,
+                                             alpha=alpha, zorder=2 + (t - lo) / (hi - lo + 1e-9)))
     ax.set_xlim(cx - r / 2, cx + r / 2)
     ax.set_ylim(cy - r / 2, cy + r / 2)
-    ax.set_zlim(0, r)
-    ax.set_box_aspect((1, 1, 1))
-    ax.view_init(elev=28, azim=-60)
+    zf = max(0.25, 1.3 * mm.gesamthoehe / r) if kontext else 1.0
+    ax.set_zlim(0, r * zf)
+    ax.set_box_aspect((1, 1, zf), zoom=1.0)
+    ax.view_init(elev=elev, azim=azim)
     ax.set_axis_off()
+    if kontext:
+        fig.text(0.04, 0.035, "Nachbarbebauung: Baukörpermodell Stadt Wien; Luftbild: Stadt Wien "
+                 "(data.wien.gv.at, CC BY 4.0)", fontsize=7, color="#555")
     return fig
 
 
 SEITEN = {
+    "umgebung": seite_umgebung,
     "lageplan": seite_lageplan,
     "schnitt": seite_schnitt,
     "ansicht": seite_ansicht,

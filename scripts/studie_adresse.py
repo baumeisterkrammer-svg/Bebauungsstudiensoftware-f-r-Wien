@@ -18,7 +18,7 @@ from pathlib import Path
 
 from bebauungsstudie import Bauplatz, erstelle_studie
 from bebauungsstudie.ausgabe.paket import exportiere_alles
-from bebauungsstudie.daten import bebauungsplan, kataster, planschrift
+from bebauungsstudie.daten import bebauungsplan, kataster, kontext, planschrift
 from bebauungsstudie.daten.standort import ermittle_standort
 
 
@@ -123,6 +123,12 @@ def main() -> int:
 
     if bauweise is None:
         bauweise, bauweise_text = "o", "o (Annahme, im Plandokument prüfen)"
+
+    umgebung = None
+    if gst is not None:
+        from shapely.geometry import Polygon
+        umgebung = kontext.hole_kontext(Polygon(umriss))
+        st.protokoll += umgebung.protokoll
     kopf = [
         f"# Bebauungsstudie {a.adresse}",
         "",
@@ -176,6 +182,7 @@ def main() -> int:
         wohngebiet=(st.widmungsklasse == "WO"),
     )
     studie = erstelle_studie(bp)
+    studie.kontext = umgebung
     if st.bausperre:
         studie.hinweise.append("Bausperre am Standort: Bebauung derzeit eingeschränkt.")
     if st.stellplatzzone:

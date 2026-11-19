@@ -77,6 +77,8 @@ class Studie:
     grundriss: BaseGeometry
     werte: dict[str, Ergebnis] = field(default_factory=dict)
     hinweise: list[str] = field(default_factory=list)
+    kontext: object | None = None
+    """Umgebung (Nachbargebäude, Luftbild), siehe daten.kontext.Kontext."""
 
     def bericht(self) -> str:
         zeilen = ["Bebauungsstudie (Vorabschätzung, keine Rechtsauskunft)", ""]
