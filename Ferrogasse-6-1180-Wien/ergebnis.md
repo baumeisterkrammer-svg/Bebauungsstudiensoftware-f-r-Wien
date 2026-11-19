@@ -1,0 +1,56 @@
+# Bebauungsstudie Ferrogasse 6, 1180 Wien
+
+Vorabschätzung, keine Rechtsauskunft. Datenquellen: Stadt Wien – data.wien.gv.at, BEV – data.bev.gv.at (beide CC BY 4.0).
+
+## Aus den Stadt-Wien-Daten (automatisch)
+
+- Gefundene Adresse: 6, Ferrogasse, Neu-Gersthof, Katastralgemeinde Gersthof, Währing, Wien, 1180, Österreich (x=-349.3, y=343816.2, EPSG:31256)
+- Widmung: W2 – Wohngebiet Bauklasse 2
+- Bauklasse: II
+- Schutzzone: ja · Wohnzone: nein · Bausperre: nein
+- Stellplatzzone (WGarG § 50a): 2
+- Bestand im Umkreis von 20 m: 19 Gebäudeteile, Höhen 15.0 m, 14.8 m, 12.9 m, 14.7 m, 10.3 m, 10.6 m, 10.8 m, 16.1 m, 11.6 m, 11.4 m, 15.0 m, 7.8 m, 10.3 m, 7.5 m, 14.5 m, 7.3 m, 11.3 m, 4.5 m, 11.4 m
+
+
+## Eingaben und Annahmen (im Plandokument nur als Bild, bitte prüfen)
+
+- Grundstück: KG 01501, Grundstück 479/2: 126 m² laut BEV-Katastralmappe (Stichtag 01.10.2026), Straßenkanten [0]
+- Bauweise: o (Annahme, im Plandokument prüfen)
+- Abstand der Fluchtlinien (Straßenbreite): 15.0 m (aus dem Planbild gemessen, schmalste angrenzende Straße)
+- Bebaubare Fläche: innerhalb der aus dem Planbild erkannten Baufluchtlinien (bitte prüfen)
+- Besondere Bestimmungen des Plandokuments: nicht berücksichtigt
+
+## Protokoll
+
+- Adresssuche Stadt Wien: HTTPError: HTTP Error 404: Not Found
+- Adresssuche OpenStreetMap: 1 Treffer
+- Widmung: W2 (Wohngebiet Bauklasse 2)
+- Schutzzone: ja, Wohnzone: nein
+- Bausperre: nein
+- Stellplatzzone: 2
+- Bestand im Umkreis von 20 m: 19 Gebäudeteile
+- Kataster: KG 01501, Gst. 479/2, 126 m² (BEV DKM Stichtag 01.10.2026, CC BY 4.0)
+- Kataster: Nutzung Gebäude 122 m², Gebäudenebenfläche 4 m²; Straßenkanten [0]; Nachbargrundstücke 481/2 (115 m²), 479/1 (92 m²), 476 (391 m²)
+- Kataster: Das Grundstück am Adresspunkt ist fast ganz überbaut. Der Bauplatz umfasst vermutlich weitere Grundstücke derselben Einlagezahl; bitte prüfen.
+- Fluchtlinien-Bild: 768×512 px, 0.20 m/px, rote Pixel 7.0%
+- Baufluchtlinien: geschlossene Fläche 497 m² erkannt, davon 53 m² im Grundstück
+- Straßenkante 0: Abstand der Baulinien ca. 15.0 m (Messungen 15.0, 15.0, 15.0, 15.0, 15.0)
+- Planbeschriftung: %, %.., 002,, 007", 02,, 0p, 10, 10,5, 10.5, 12.00, 15.17, 2, 2,, 4, 405, 42.00, 42.08, 7, 70, 9, ;, <, >, >,, A0, CO, D, M4, My, Nb, Of, Oo, Op, Ot, SZ, \, a, a>, at, eee
+- keine Bauweisen-Beschriftung im Umkreis erkannt
+- Bebauungsplan: Ausschnitt als Bild beigelegt
+
+## Ergebnis
+
+```
+Bebauungsstudie (Vorabschätzung, keine Rechtsauskunft)
+
+Bauplatzfläche m²: 126.0  [Eingabe Grundstücksgeometrie]  aus Geometrie
+Bebaute Fläche m²: 0.0  [BO für Wien § 79 Abs. 1, 3, Bebauungsplan Baufluchtlinien (§ 5 Abs. 4 BO)]  innerhalb der Baufluchtlinien laut Bebauungsplan, abzüglich Abstandsflächen
+
+Hinweise:
+- Nach Abständen bleibt keine bebaubare Fläche.
+- Stellplatzzone 2: mögliche Reduktion der Pflichtstellplätze nach WGarG § 50a ist noch nicht eingerechnet.
+```
+
+- bebauungsplan_flwbplmzk.png
+- bebauungsplan_flwbplflucht.png
