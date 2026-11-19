@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{% block titel %}Bebauungsstudie Wien{% endblock %}</title>
+<link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+{% if demo %}<div class="demo-band">Prototyp im Demo-Modus: es wird nichts verrechnet.</div>{% endif %}
+<header class="kopf">
+  <div class="breite">
+    <a class="marke" href="/"><span class="logo">▦</span> Bebauungsstudie Wien</a>
+    <nav><a href="/#ablauf">Ablauf</a><a href="/#preise">Preise</a><a href="/#fragen">Fragen</a>
+      <a class="knopf klein" href="/bestellen">Studie bestellen</a></nav>
+  </div>
+</header>
+<main>{% block inhalt %}{% endblock %}</main>
+<footer class="fuss">
+  <div class="breite">
+    <p>Ergebnisse sind eine Vorabschätzung und keine Rechtsauskunft. Verbindlich sind die
+      beschlossenen Plandokumente und die Entscheidung der Baubehörde.</p>
+    <p>Datenquellen: Stadt Wien – data.wien.gv.at, BEV – data.bev.gv.at (CC BY 4.0)</p>
+    <p><a href="/impressum">Impressum</a> · <a href="/agb">AGB</a> · <a href="/datenschutz">Datenschutz</a>
+      · © {{ anbieter }}</p>
+  </div>
+</footer>
+</body>
+</html>

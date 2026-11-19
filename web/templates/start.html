@@ -1,0 +1,80 @@
+{% extends "basis.html" %}
+{% block inhalt %}
+<section class="held">
+  <div class="breite held-raster">
+    <div>
+      <p class="ueber">Für Projektentwickler und Investoren</p>
+      <h1>Was darf auf diesem Wiener Grundstück gebaut werden?</h1>
+      <p class="gross">Adresse eingeben, Paket wählen, Ergebnis in wenigen Minuten: bebaubare Fläche,
+        BGF, Geschoße, Wohnungen und Stellplätze aus Flächenwidmungs- und Bebauungsplan, mit Plänen und
+        3D-Modell.</p>
+      <form class="schnell" action="/bestellen" method="get">
+        <input type="hidden" name="paket" value="standard">
+        <a class="knopf" href="/bestellen">Jetzt Studie bestellen</a>
+        <a class="knopf hell" href="#preise">Preise ansehen</a>
+      </form>
+      <ul class="haken">
+        <li>Jede Zahl mit Rechtsquelle (BO für Wien, WGarG)</li>
+        <li>Daten direkt von Stadt Wien und BEV-Kataster</li>
+        <li>PDF-Pläne, IFC und DXF zum Weiterarbeiten</li>
+      </ul>
+    </div>
+    <figure class="vorschau">
+      <img src="/static/beispiel_axonometrie.png" alt="Beispiel: Axonometrie eines Baukörpers">
+      <figcaption>Beispiel Olbrichgasse 9, 1120 Wien: 622 m² BGF, 3 Vollgeschoße + Dachgeschoß</figcaption>
+    </figure>
+  </div>
+</section>
+
+<section id="ablauf" class="abschnitt">
+  <div class="breite">
+    <h2>So funktioniert es</h2>
+    <ol class="schritte">
+      <li><b>Paket wählen</b><span>Basis, Standard oder Profi, je nachdem was Sie brauchen.</span></li>
+      <li><b>Adresse eingeben</b><span>Eine Wiener Adresse genügt. Das Grundstück holen wir aus dem Kataster.</span></li>
+      <li><b>Sicher bezahlen</b><span>Karte, Apple Pay, Google Pay oder EPS. Rechnung kommt per E-Mail.</span></li>
+      <li><b>Ergebnis erhalten</b><span>Kennzahlen online und alle Dateien als Download, Link per E-Mail.</span></li>
+    </ol>
+  </div>
+</section>
+
+<section id="preise" class="abschnitt grau">
+  <div class="breite">
+    <h2>Preise</h2>
+    <p class="mitte">Einmal bezahlen, kein Abo, kein Kundenkonto. Alle Preise inkl. USt.</p>
+    <div class="pakete">
+      {% for p in pakete %}
+      <article class="paket{% if p.empfohlen %} empfohlen{% endif %}">
+        {% if p.empfohlen %}<div class="schild">Am beliebtesten</div>{% endif %}
+        <h3>{{ p.name }}</h3>
+        <p class="kurz">{{ p.kurz }}</p>
+        <p class="preis">{{ p.preis_eur }} €<small> pro Studie</small></p>
+        <ul>{% for l in p.leistungen %}<li>{{ l }}</li>{% endfor %}</ul>
+        <a class="knopf{% if not p.empfohlen %} hell{% endif %}" href="/bestellen?paket={{ p.id }}">{{ p.name }} wählen</a>
+      </article>
+      {% endfor %}
+    </div>
+    <p class="mitte klein">Mehrere Grundstücke oder regelmäßiger Bedarf? Schreiben Sie uns für ein Angebot.</p>
+  </div>
+</section>
+
+<section id="fragen" class="abschnitt">
+  <div class="breite schmal">
+    <h2>Häufige Fragen</h2>
+    <details><summary>Wie genau sind die Ergebnisse?</summary>
+      <p>Die Studie ist eine Vorabschätzung auf Basis der offenen Daten der Stadt Wien und des BEV.
+      Bauweise, Fluchtlinien und Straßenbreite werden aus dem Planbild gelesen und sind im Bericht
+      zur Prüfung markiert. Besondere Bestimmungen des Plandokuments sind noch nicht berücksichtigt.</p></details>
+    <details><summary>Welche Regeln werden angewendet?</summary>
+      <p>Bauordnung für Wien (§§ 75, 76, 79, 81) und Wiener Garagengesetz (§§ 48, 50). Zu jeder Zahl
+      steht die Quelle und die Herleitung im Bericht.</p></details>
+    <details><summary>Was, wenn das Grundstück aus mehreren Grundstücksnummern besteht?</summary>
+      <p>Geben Sie die weiteren Grundstücksnummern bei der Bestellung an, sie werden zum Bauplatz zusammengelegt.</p></details>
+    <details><summary>Was ist, wenn die Adresse nicht gefunden wird?</summary>
+      <p>Dann bekommen Sie Ihr Geld zurück oder wir rechnen die Studie gemeinsam mit Ihnen nach.</p></details>
+    <details><summary>Ersetzt das einen Architekten?</summary>
+      <p>Nein. Die Studie zeigt schnell, ob sich ein Grundstück lohnt. Für Einreichung und Planung
+      braucht es weiterhin Architekt oder Baumeister.</p></details>
+  </div>
+</section>
+{% endblock %}

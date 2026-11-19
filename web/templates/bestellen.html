@@ -1,0 +1,41 @@
+{% extends "basis.html" %}
+{% block titel %}Studie bestellen – Bebauungsstudie Wien{% endblock %}
+{% block inhalt %}
+<section class="abschnitt">
+  <div class="breite schmal">
+    <h1>Studie bestellen</h1>
+    {% if fehler %}<p class="fehler">{{ fehler }}</p>{% endif %}
+    <form method="post" action="/bestellen" class="formular">
+      <fieldset>
+        <legend>1. Paket</legend>
+        <div class="wahl">
+          {% for p in pakete %}
+          <label class="wahlkarte">
+            <input type="radio" name="paket" value="{{ p.id }}" {% if p.id == gewaehlt %}checked{% endif %}>
+            <span><b>{{ p.name }}</b> · {{ p.preis_eur }} €<br><small>{{ p.kurz }}</small></span>
+          </label>
+          {% endfor %}
+        </div>
+      </fieldset>
+      <fieldset>
+        <legend>2. Grundstück</legend>
+        <label>Adresse in Wien
+          <input name="adresse" required placeholder="z. B. Olbrichgasse 9, 1120 Wien" value="{{ adresse or '' }}"></label>
+        <label>Weitere Grundstücksnummern (falls der Bauplatz aus mehreren besteht)
+          <input name="grundstuecke" placeholder="z. B. 453/16" value="{{ grundstuecke or '' }}"></label>
+      </fieldset>
+      <fieldset>
+        <legend>3. Kontakt</legend>
+        <label>E-Mail für Ergebnis und Rechnung
+          <input name="email" type="email" required placeholder="name@firma.at" value="{{ email or '' }}"></label>
+        <label class="haekchen"><input type="checkbox" name="agb" value="ja">
+          <span>Ich habe die <a href="/agb" target="_blank">AGB</a> gelesen und weiß, dass das Ergebnis eine
+          Vorabschätzung und keine Rechtsauskunft ist.</span></label>
+      </fieldset>
+      <button class="knopf" type="submit">{% if demo %}Demo-Studie starten{% else %}Weiter zur Zahlung{% endif %}</button>
+      <p class="klein">{% if demo %}Demo-Modus: es wird keine Zahlung verlangt.{% else %}Sie werden zu Stripe
+        weitergeleitet. Die Berechnung startet nach der Zahlung.{% endif %}</p>
+    </form>
+  </div>
+</section>
+{% endblock %}

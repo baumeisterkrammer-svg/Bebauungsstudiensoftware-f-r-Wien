@@ -1,0 +1,85 @@
+:root{--tinte:#1d2430;--grau:#5b6472;--linie:#dfe3e8;--flaeche:#f4f6f8;--weiss:#fff;--akzent:#b5542c;--akzent-dunkel:#93421f;--gruen:#2f7d4f;--rot:#a8322d}
+*{box-sizing:border-box}
+body{margin:0;font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--tinte);background:var(--weiss);line-height:1.55;font-size:17px}
+a{color:var(--akzent)}
+h1{font-size:clamp(28px,4.2vw,46px);line-height:1.12;margin:.2em 0 .4em;letter-spacing:-.01em}
+h2{font-size:26px;margin:0 0 .7em}
+h3{margin:0}
+.breite{max-width:1120px;margin:0 auto;padding:0 20px}
+.schmal{max-width:760px}
+.demo-band{background:#fff3cd;color:#6b5300;text-align:center;font-size:14px;padding:6px}
+.kopf{border-bottom:1px solid var(--linie);background:var(--weiss);position:sticky;top:0;z-index:5}
+.kopf .breite{display:flex;align-items:center;justify-content:space-between;height:64px;gap:16px}
+.marke{font-weight:700;color:var(--tinte);text-decoration:none;font-size:18px;white-space:nowrap}
+.logo{color:var(--akzent)}
+nav{display:flex;align-items:center;gap:22px}
+nav a{color:var(--tinte);text-decoration:none;font-size:15px}
+.knopf{display:inline-block;background:var(--akzent);color:#fff!important;text-decoration:none;border:0;border-radius:8px;padding:13px 22px;font-weight:600;font-size:16px;cursor:pointer;text-align:center}
+.knopf:hover{background:var(--akzent-dunkel)}
+.knopf.hell{background:var(--weiss);color:var(--tinte)!important;border:1px solid var(--linie)}
+.knopf.hell:hover{background:var(--flaeche)}
+.knopf.klein{padding:8px 14px;font-size:14px}
+.held{padding:56px 0 64px;background:linear-gradient(180deg,#fbf7f4,var(--weiss))}
+.held-raster{display:grid;grid-template-columns:1.1fr 1fr;gap:48px;align-items:center}
+.ueber{text-transform:uppercase;letter-spacing:.08em;font-size:13px;color:var(--akzent);font-weight:700;margin:0}
+.gross{font-size:19px;color:var(--grau)}
+.schnell{display:flex;gap:12px;flex-wrap:wrap;margin:24px 0}
+.haken{list-style:none;padding:0;margin:0;color:var(--grau)}
+.haken li{padding-left:26px;position:relative;margin:4px 0}
+.haken li:before{content:"✓";position:absolute;left:0;color:var(--gruen);font-weight:700}
+.vorschau{margin:0;background:var(--weiss);border:1px solid var(--linie);border-radius:14px;padding:14px;box-shadow:0 10px 30px rgba(29,36,48,.08)}
+.vorschau img{width:100%;display:block}
+.vorschau figcaption{font-size:14px;color:var(--grau);padding-top:8px}
+.abschnitt{padding:64px 0}
+.grau{background:var(--flaeche)}
+.mitte{text-align:center}
+.klein{font-size:14px;color:var(--grau)}
+#preise h2,#ablauf h2{text-align:center}
+.schritte{list-style:none;counter-reset:s;padding:0;display:grid;grid-template-columns:repeat(4,1fr);gap:20px}
+.schritte li{counter-increment:s;border:1px solid var(--linie);border-radius:12px;padding:20px}
+.schritte li:before{content:counter(s);display:inline-grid;place-items:center;width:32px;height:32px;border-radius:50%;background:var(--akzent);color:#fff;font-weight:700;margin-bottom:10px}
+.schritte b{display:block}.schritte span{color:var(--grau);font-size:15px}
+.pakete{display:grid;grid-template-columns:repeat(3,1fr);gap:22px;margin:28px 0;align-items:stretch}
+.paket{background:var(--weiss);border:1px solid var(--linie);border-radius:14px;padding:28px;display:flex;flex-direction:column;position:relative}
+.paket.empfohlen{border:2px solid var(--akzent);box-shadow:0 12px 30px rgba(181,84,44,.14)}
+.schild{position:absolute;top:-13px;left:50%;transform:translateX(-50%);background:var(--akzent);color:#fff;font-size:13px;font-weight:700;padding:3px 12px;border-radius:20px;white-space:nowrap}
+.paket .kurz{color:var(--grau);margin:4px 0 12px}
+.preis{font-size:40px;font-weight:800;margin:0 0 12px}
+.preis small{font-size:15px;font-weight:400;color:var(--grau)}
+.paket ul{padding-left:20px;margin:0 0 24px;flex:1}
+.paket li{margin:6px 0}
+details{border-bottom:1px solid var(--linie);padding:14px 0}
+summary{cursor:pointer;font-weight:600}
+.fuss{background:var(--tinte);color:#c9ced6;font-size:14px;padding:28px 0}
+.fuss a{color:#fff}
+.formular fieldset{border:1px solid var(--linie);border-radius:12px;padding:18px 20px;margin:0 0 20px}
+.formular legend{font-weight:700;padding:0 6px}
+.formular label{display:block;margin:10px 0;font-size:15px;color:var(--grau)}
+.formular input:not([type=radio]):not([type=checkbox]){display:block;width:100%;margin-top:4px;padding:12px;border:1px solid #c6ccd4;border-radius:8px;font-size:17px;color:var(--tinte)}
+.wahl{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.wahlkarte{display:flex!important;gap:10px;align-items:flex-start;border:1px solid var(--linie);border-radius:10px;padding:12px;cursor:pointer;color:var(--tinte)!important}
+.wahlkarte:has(input:checked){border-color:var(--akzent);background:#fbf3ef}
+.haekchen{display:flex!important;gap:10px;align-items:flex-start}
+.fehler{background:#fbeaea;color:var(--rot);border-radius:8px;padding:12px 14px}
+.warten{display:flex;gap:16px;align-items:center;background:var(--flaeche);border-radius:12px;padding:24px}
+.kreis{width:34px;height:34px;flex:none;border:4px solid var(--linie);border-top-color:var(--akzent);border-radius:50%;animation:dreh 1s linear infinite}
+@keyframes dreh{to{transform:rotate(360deg)}}
+.ergebnis-raster{display:grid;grid-template-columns:2fr 1fr;gap:36px;margin-top:20px}
+.kacheln{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:12px;margin-bottom:28px}
+.kachel{border:1px solid var(--linie);border-radius:10px;padding:12px 14px;display:flex;flex-direction:column}
+.kachel span{font-size:13px;color:var(--grau)}
+.kachel b{font-size:24px}
+.kachel small{font-size:11px;color:var(--grau);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.standort{display:grid;grid-template-columns:auto 1fr;gap:6px 16px;margin:0 0 24px}
+.standort dt{color:var(--grau)}.standort dd{margin:0}
+.downloads{background:var(--flaeche);border-radius:12px;padding:22px;align-self:start}
+.downloads .knopf{width:100%;margin-bottom:12px}
+.downloads ul{padding-left:18px;font-size:15px}
+.bilder{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:14px;margin-bottom:20px}
+.bilder img{width:100%;border:1px solid var(--linie);border-radius:8px;background:#fff}
+@media (max-width:860px){
+  .held-raster,.ergebnis-raster{grid-template-columns:1fr}
+  .schritte,.pakete,.wahl{grid-template-columns:1fr}
+  nav a:not(.knopf){display:none}
+  .marke{font-size:16px}
+}

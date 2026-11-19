@@ -1,0 +1,49 @@
+{% extends "basis.html" %}
+{% block titel %}Ihre Studie – Bebauungsstudie Wien{% endblock %}
+{% block inhalt %}
+<section class="abschnitt">
+  <div class="breite">
+    <p class="ueber">Paket {{ paket.name }}</p>
+    <h1>{{ a.adresse }}</h1>
+    {% if a.status in ("offen", "bezahlt", "rechnet") %}
+      <div class="warten">
+        <div class="kreis"></div>
+        <p>{% if a.status == "offen" %}Wir warten auf die Bestätigung der Zahlung …{% else %}Die Studie wird
+          berechnet. Das dauert meist ein bis drei Minuten. Sie bekommen zusätzlich einen Link an
+          {{ a.email }}.{% endif %}</p>
+      </div>
+      <script>setTimeout(() => location.reload(), 4000)</script>
+    {% elif a.status == "fehler" %}
+      <p class="fehler">Die Studie konnte nicht automatisch erstellt werden. Wir melden uns bei Ihnen unter
+        {{ a.email }} und rechnen nach oder erstatten den Betrag.</p>
+    {% else %}
+      <div class="ergebnis-raster">
+        <div>
+          <h2>Kennzahlen</h2>
+          <div class="kacheln">
+            {% for name, wert, quelle in werte %}
+            <div class="kachel" title="{{ quelle }}"><span>{{ name }}</span><b>{{ wert }}</b><small>{{ quelle }}</small></div>
+            {% endfor %}
+          </div>
+          {% if standort %}
+          <h2>Standort</h2>
+          <dl class="standort">{% for k, v in standort.items() %}<dt>{{ k }}</dt><dd>{{ v }}</dd>{% endfor %}</dl>
+          {% endif %}
+          {% if hinweise %}<h2>Hinweise</h2><ul>{% for h in hinweise %}<li>{{ h }}</li>{% endfor %}</ul>{% endif %}
+        </div>
+        <aside class="downloads">
+          <h2>Downloads</h2>
+          <a class="knopf" href="/auftrag/{{ a.id }}/alles.zip">Alles als ZIP</a>
+          <ul>{% for d in dateien %}<li><a href="/auftrag/{{ a.id }}/datei/{{ d.name }}">{{ d.name }}</a></li>{% endfor %}</ul>
+          {% if paket.id != "profi" %}<p class="klein">IFC und DXF sind im Paket Profi enthalten.</p>{% endif %}
+        </aside>
+      </div>
+      {% if bilder %}
+      <h2>Pläne</h2>
+      <div class="bilder">{% for b in bilder %}<a href="/auftrag/{{ a.id }}/datei/{{ b.name }}"><img src="/auftrag/{{ a.id }}/datei/{{ b.name }}" alt="{{ b.name }}"></a>{% endfor %}</div>
+      {% endif %}
+      <p class="klein">Vorabschätzung, keine Rechtsauskunft. Annahmen und Herleitung stehen in ergebnis.md.</p>
+    {% endif %}
+  </div>
+</section>
+{% endblock %}
