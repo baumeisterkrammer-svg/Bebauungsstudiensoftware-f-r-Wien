@@ -53,7 +53,10 @@ def _polygone(g: BaseGeometry) -> list[Polygon]:
     return []
 
 
-def hole_kontext(bauplatz: Polygon, radius: float = 45.0, luftbild: bool = True) -> Kontext:
+def hole_kontext(bauplatz: Polygon, radius: float = 45.0, luftbild: bool = True,
+                 luftbild_radius: float = 110.0) -> Kontext:
+    """`luftbild_radius`: halbe Seitenlänge des Luftbilds; deckt das A3-Blatt im Maßstab
+    1:500 auch bei gedrehtem Bauplatz ab."""
     k = Kontext()
     c = bauplatz.centroid
     rand = radius + max(bauplatz.bounds[2] - bauplatz.bounds[0], bauplatz.bounds[3] - bauplatz.bounds[1]) / 2
@@ -77,8 +80,9 @@ def hole_kontext(bauplatz: Polygon, radius: float = 45.0, luftbild: bool = True)
     if luftbild:
         try:
             name = luftbild_ebene()
-            bbox = (c.x - rand, c.y - rand, c.x + rand, c.y + rand)
-            bild, ext = bebauungsplan.ausschnitt(name, bbox, ziel_aufloesung=0.2, max_kacheln=100)
+            lr = max(rand, luftbild_radius)
+            bbox = (c.x - lr, c.y - lr, c.x + lr, c.y + lr)
+            bild, ext = bebauungsplan.ausschnitt(name, bbox, ziel_aufloesung=0.25, max_kacheln=144)
             k.luftbild, k.luftbild_ausdehnung = bild, tuple(ext)
             k.protokoll.append(f"Luftbild: Ebene {name} (Stadt Wien, CC BY 4.0)")
         except Exception as e:

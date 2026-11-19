@@ -300,13 +300,13 @@ FARBEN_NV = {"bestand": ("#b8b0a4", "#6b645a", "Bestand (erhalten)"),
 
 
 def _axonometrie(studie: Studie, mm: Massenmodell, titel: str, volumen, hoehe: float,
-                 zeilen=None, legende=None):
+                 zeilen=None, legende=None, azim: float = -60):
     """volumen: Liste (Polygon lokal, z0, z1, Füllfarbe, Kantenfarbe)."""
     fig = plt.figure(figsize=A3)
     ax = fig.add_axes(FREI, projection="3d")
     _plankopf(fig, titel, studie, "", zeilen)
     ax.computed_zorder = False
-    elev, azim = 30, -60
+    elev = 30
     blick = np.array([math.cos(math.radians(elev)) * math.cos(math.radians(azim)),
                       math.cos(math.radians(elev)) * math.sin(math.radians(azim)),
                       math.sin(math.radians(elev))])
@@ -320,7 +320,9 @@ def _axonometrie(studie: Studie, mm: Massenmodell, titel: str, volumen, hoehe: f
     if k is not None and k.luftbild is not None:
         # Boden mit Luftbild: Bildpunkte ins lokale System, auf den Ausschnitt begrenzt
         img = k.luftbild
-        schritt = max(1, int(max(img.shape[:2]) / 160))
+        xmin, xmax, ymin, ymax = k.luftbild_ausdehnung
+        # rund 300 Bildpunkte über den sichtbaren Ausschnitt
+        schritt = max(1, int(max(img.shape[:2]) * r / max(xmax - xmin, ymax - ymin) / 300))
         bild = img[::schritt, ::schritt] / 255.0
         hh, ww = bild.shape[:2]
         xmin, xmax, ymin, ymax = k.luftbild_ausdehnung
@@ -409,9 +411,19 @@ def seite_nachverdichtung(studie: Studie, mm: Massenmodell):
         f"Neubau zum Vergleich {w['Vergleich Neubau BGF m²'].wert:.0f} m²",
     ]
     hoehe = max([v.z1 for v in nv.volumen] + [mm.gesamthoehe])
+    # Blick von der Seite, auf der der Bestand liegt, damit er nicht verdeckt ist
+    bestand = [mm.lokal(v.flaeche) for v in nv.volumen if v.art == "bestand"]
+    azim = -60
+    if bestand:
+        from shapely.ops import unary_union
+        mitte = mm.lokal(mm.bauplatz).centroid
+        b = unary_union(bestand).centroid
+        dx, dy = b.x - mitte.x, b.y - mitte.y
+        azim = max((-60, 30, 120, 210), key=lambda a: dx * math.cos(math.radians(a))
+                   + dy * math.sin(math.radians(a)))
     legende = [(FARBEN_NV[a][0], FARBEN_NV[a][2]) for a in FARBEN_NV if a in arten]
     return _axonometrie(studie, mm, "Nachverdichtung (Bestand erhalten)", volumen, hoehe,
-                        zeilen=zeilen, legende=legende)
+                        zeilen=zeilen, legende=legende, azim=azim)
 
 
 SEITEN = {
