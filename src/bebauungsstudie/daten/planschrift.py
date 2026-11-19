@@ -71,8 +71,19 @@ def lies_beschriftung(rot_maske: np.ndarray, ext, schritt: int = 15, vergroesser
 
     if not verfuegbar():
         return []
+    from scipy import ndimage
+
     h, w = rot_maske.shape
     px, py = (ext[1] - ext[0]) / w, (ext[3] - ext[2]) / h
+    # Linien entfernen: zusammenhängende Teile, die länger als ein Schriftzeichen sind
+    lab, n = ndimage.label(rot_maske, structure=np.ones((3, 3)))
+    schrift = np.zeros_like(rot_maske)
+    for k, sl in enumerate(ndimage.find_objects(lab), start=1):
+        hoehe, breite = (sl[0].stop - sl[0].start) * py, (sl[1].stop - sl[1].start) * px
+        anteil = (lab[sl] == k).mean()
+        if max(hoehe, breite) <= 4.0 and anteil > 0.15:
+            schrift[sl] |= lab[sl] == k
+    rot_maske = schrift
     grund = Image.fromarray(np.where(rot_maske, 0, 255).astype(np.uint8))
     grund = grund.resize((w * vergroesserung, h * vergroesserung), Image.NEAREST)
     W, H = grund.size
@@ -89,14 +100,16 @@ def lies_beschriftung(rot_maske: np.ndarray, ext, schritt: int = 15, vergroesser
     return ergebnis
 
 
-def bauweise_aus_woertern(woerter: list[Wort], x: float, y: float, radius: float = 40.0):
+def bauweise_aus_woertern(woerter: list[Wort], x: float, y: float, radius: float = 20.0):
     """Nächstgelegene Bauweisen-Angabe zum Punkt (x, y), mit Begründung."""
     import re
 
     muster = re.compile(r"^(?:W|GB|GS|IG)?(?:III|II|IV|VI|I|V|1|l)?(ogk|gk|gr|o|g)$")
     kandidaten = []
     for w in woerter:
-        t = w.text.strip(".,;:'\"|").replace("0", "o")
+        t = w.text.strip(".,;:'\"|")
+        if len(t) > 1:
+            t = t.replace("0", "o")
         m = muster.match(t)
         if m:
             d = math.hypot(w.x - x, w.y - y)
