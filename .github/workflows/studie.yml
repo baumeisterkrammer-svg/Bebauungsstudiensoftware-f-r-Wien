@@ -11,11 +11,18 @@ on:
         description: "Adresse in Wien"
         required: true
         default: "Olbrichgasse 9, 1120 Wien"
+      grundstuecke:
+        description: "Weitere Grundstücksnummern des Bauplatzes (z. B. 453/16), sonst leer"
+        default: ""
+      rechteck:
+        description: "Kataster nicht verwenden, Rechteck Breite × Tiefe rechnen"
+        type: boolean
+        default: false
       breite:
-        description: "Grundstücksbreite an der Straße in m"
+        description: "Grundstücksbreite an der Straße in m (nur ohne Kataster)"
         default: "20"
       tiefe:
-        description: "Grundstückstiefe in m"
+        description: "Grundstückstiefe in m (nur ohne Kataster)"
         default: "40"
       bauweise:
         description: "Bauweise laut Plandokument (o, gk, ogk, gr, g)"
@@ -47,6 +54,8 @@ jobs:
       TIEFE: ${{ github.event.inputs.tiefe || '40' }}
       BAUWEISE: ${{ github.event.inputs.bauweise || 'o' }}
       STRASSENBREITE: ${{ github.event.inputs.strassenbreite }}
+      GRUNDSTUECKE: ${{ github.event.inputs.grundstuecke }}
+      RECHTECK: ${{ github.event.inputs.rechteck }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -61,18 +70,10 @@ jobs:
         run: |
           ARGS="--breite $BREITE --tiefe $TIEFE --bauweise $BAUWEISE"
           if [ -n "$STRASSENBREITE" ]; then ARGS="$ARGS --strassenbreite $STRASSENBREITE"; fi
+          if [ -n "$GRUNDSTUECKE" ]; then ARGS="$ARGS --grundstuecke $GRUNDSTUECKE"; fi
+          if [ "$RECHTECK" = "true" ]; then ARGS="$ARGS --rechteck"; fi
           python scripts/studie_adresse.py "$ADRESSE" ergebnis/studie $ARGS
           cat ergebnis/studie/ergebnis.md >> "$GITHUB_STEP_SUMMARY"
-      - name: Erkundung BEV-Kataster
-        if: ${{ github.event_name == 'push' }}
-        timeout-minutes: 6
-        continue-on-error: true
-        run: python scripts/kataster_erkunden.py
-      - name: Erkundung Bebauungsplan-Quellen
-        if: ${{ github.event_name == 'push' }}
-        timeout-minutes: 5
-        continue-on-error: true
-        run: python scripts/bplan_erkunden.py
       - name: Erkundung aller Layer
         if: ${{ github.event.inputs.erkunden == 'true' }}
         timeout-minutes: 8

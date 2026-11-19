@@ -31,11 +31,11 @@ BASIS = "https://data.bev.gv.at/download/Kataster/gpkg/national/KAT_DKM_GST_epsg
 NACH_LAMBERT = Transformer.from_crs(31256, 31287, always_xy=True)
 NACH_GK = Transformer.from_crs(31287, 31256, always_xy=True)
 
-# Nutzungen der DKM (Feld NS der Nutzungsflächen), die als öffentliche
-# Verkehrsfläche gelten. Codes laut BEV-Schnittstellenbeschreibung; die
-# Texte der Werte werden zusätzlich geprüft.
-STRASSEN_NS = {"41", "42", "43", "44", "45", "46", "47", "48"}
-STRASSEN_WOERTER = ("STRA", "WEG", "VERKEHR", "PLATZ", "PARKPLATZ")
+# Nutzungen der DKM (Feld NS, BEV-Schnittstelle Katastralmappe, Tabelle 8)
+NUTZUNG = {"41": "Gebäude", "42": "Parkplatz", "52": "Garten", "63": "Betriebsfläche",
+           "65": "Verkehrsrandfläche", "83": "Gebäudenebenfläche", "92": "Schiene",
+           "95": "Straßenverkehrsanlage", "96": "Erholungsfläche"}
+STRASSEN_NS = {"95", "65"}
 
 
 @dataclass
@@ -45,6 +45,10 @@ class Grundstueck:
     umriss: Polygon
     """In EPSG:31256, gegen den Uhrzeigersinn, ohne Bögen."""
     strassenkanten: set[int] = field(default_factory=set)
+    nachbarn: list[tuple[str, float]] = field(default_factory=list)
+    """Angrenzende Grundstücke (Nummer, Fläche m²), ohne Straßen."""
+    nutzungen: dict[str, float] = field(default_factory=dict)
+    """Nutzungsanteile im Grundstück in m²."""
     stichtag: str = ""
     protokoll: list[str] = field(default_factory=list)
 
@@ -104,9 +108,7 @@ def _vereinfache(poly: Polygon) -> Polygon:
 
 
 def ist_strasse(attribute: dict) -> bool:
-    ns = (attribute.get("NS") or "").strip()
-    text = " ".join(str(v) for v in attribute.values() if v).upper()
-    return ns in STRASSEN_NS or any(w in text for w in STRASSEN_WOERTER)
+    return (attribute.get("NS") or "").strip() in STRASSEN_NS
 
 
 def strassenkanten(umriss: Polygon, nutzungen: list[tuple[dict, Polygon]], abstand: float = 1.5) -> set[int]:
@@ -125,8 +127,11 @@ def strassenkanten(umriss: Polygon, nutzungen: list[tuple[dict, Polygon]], absta
     return kanten
 
 
-def grundstueck_am_punkt(x: float, y: float) -> Grundstueck:
-    """Grundstück, in dem der Punkt (EPSG:31256) liegt."""
+def grundstueck_am_punkt(x: float, y: float, weitere: tuple[str, ...] = ()) -> Grundstueck:
+    """Grundstück, in dem der Punkt (EPSG:31256) liegt.
+
+    `weitere`: Nummern weiterer Grundstücke derselben KG, die zum Bauplatz
+    gehören (z. B. ("453/16",)); sie werden mit dem ersten vereinigt."""
     stichtag, url = aktuelle_datei()
     lx, ly = NACH_LAMBERT.transform(x, y)
     kandidaten = _lies(url, "GST", (lx - 5, ly - 5, lx + 5, ly + 5))
@@ -135,10 +140,17 @@ def grundstueck_am_punkt(x: float, y: float) -> Grundstueck:
     p = Point(lx, ly)
     kandidaten.sort(key=lambda ag: (not ag[1].contains(p), ag[1].distance(p)))
     attr, geom = kandidaten[0]
+    gnr = attr.get("GNR") or ""
+    if weitere:
+        from shapely.ops import unary_union
+        teile = [geom] + [g for a, g in _lies(url, "GST", (lx - 150, ly - 150, lx + 150, ly + 150))
+                          if a.get("GNR") in weitere and a.get("KG") == attr.get("KG")]
+        geom = unary_union([t.buffer(0.01) for t in teile]).buffer(-0.01)
+        gnr = ", ".join([gnr] + [w for w in weitere])
     if isinstance(geom, MultiPolygon):
         geom = max(geom.geoms, key=lambda g: g.area)
     umriss = _vereinfache(_in_gk(geom))
-    gst = Grundstueck(kg=attr.get("KG") or "", gnr=attr.get("GNR") or "", umriss=umriss, stichtag=stichtag)
+    gst = Grundstueck(kg=attr.get("KG") or "", gnr=gnr, umriss=umriss, stichtag=stichtag)
     gst.protokoll.append(
         f"Kataster: KG {gst.kg}, Gst. {gst.gnr}, {gst.flaeche:.0f} m² "
         f"(BEV DKM Stichtag {stichtag[6:]}.{stichtag[4:6]}.{stichtag[:4]}, CC BY 4.0)")
@@ -146,12 +158,31 @@ def grundstueck_am_punkt(x: float, y: float) -> Grundstueck:
         gst.protokoll.append("Kataster: Adresspunkt liegt nicht im Grundstück, nächstes gewählt")
 
     minx, miny, maxx, maxy = geom.bounds
+    box = (minx - 3, miny - 3, maxx + 3, maxy + 3)
     try:
-        nfl = [(a, _in_gk(g)) for a, g in _lies(url, "NFL", (minx - 3, miny - 3, maxx + 3, maxy + 3))]
+        nfl = [(a, _in_gk(g)) for a, g in _lies(url, "NFL", box)]
         gst.strassenkanten = strassenkanten(umriss, nfl)
+        for a, g in nfl:
+            teil = g.intersection(umriss).area
+            if teil > 0.5:
+                name = NUTZUNG.get(a.get("NS") or "", a.get("NS") or "?")
+                gst.nutzungen[name] = round(gst.nutzungen.get(name, 0) + teil, 1)
+        strassen = [g for a, g in nfl if ist_strasse(a)]
+        for a, g in _lies(url, "GST", box):
+            g = _in_gk(g)
+            if a.get("GNR") in gst.gnr.split(", ") or g.intersection(umriss.buffer(0.2)).area < 0.5:
+                continue
+            if any(g.intersection(s_).area > 0.5 * g.area for s_ in strassen):
+                continue
+            gst.nachbarn.append((a.get("GNR") or "?", round(g.area, 1)))
         gst.protokoll.append(
-            "Kataster: Nutzungen am Rand " + ", ".join(sorted({a.get('NS') or '?' for a, _ in nfl}))
-            + f"; Straßenkanten {sorted(gst.strassenkanten) or 'keine erkannt'}")
+            "Kataster: Nutzung " + ", ".join(f"{k} {v:.0f} m²" for k, v in gst.nutzungen.items())
+            + f"; Straßenkanten {sorted(gst.strassenkanten) or 'keine erkannt'}"
+            + "; Nachbargrundstücke " + ", ".join(f"{n} ({f:.0f} m²)" for n, f in gst.nachbarn))
+        if gst.nutzungen.get("Gebäude", 0) > 0.8 * gst.flaeche:
+            gst.protokoll.append(
+                "Kataster: Das Grundstück am Adresspunkt ist fast ganz überbaut. Der Bauplatz "
+                "umfasst vermutlich weitere Grundstücke derselben Einlagezahl; bitte prüfen.")
     except Exception as e:
         gst.protokoll.append(f"Kataster: Nutzungsflächen nicht abrufbar ({type(e).__name__}: {e})")
     return gst

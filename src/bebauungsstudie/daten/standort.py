@@ -2,8 +2,8 @@
 
 Automatisch verfügbar (OGD, CC BY 4.0): Widmung und Bauklasse (generalisierte
 Flächenwidmung), Schutz- und Wohnzonen, Bausperren, Stellplatzzone und die
-Bestandsgebäude. Nicht in den offenen Daten: Grundstücksgrenzen (Kataster,
-BEV, kostenpflichtig), Bauweise, Fluchtlinien und Besondere Bestimmungen.
+Bestandsgebäude. Das Grundstück kommt aus der BEV-Katastralmappe (kataster.py).
+Bauweise, Fluchtlinien und Besondere Bestimmungen gibt es nur als Planbild.
 Diese Werte kommen als Eingabe oder Annahme und werden so gekennzeichnet.
 """
 
