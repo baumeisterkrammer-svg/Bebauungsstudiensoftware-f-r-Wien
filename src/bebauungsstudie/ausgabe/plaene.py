@@ -314,6 +314,8 @@ def _axonometrie(studie: Studie, mm: Massenmodell, titel: str, volumen, hoehe: f
     x0, y0, x1, y1 = bp.bounds
     kontext = _kontext_lokal(mm)
     r = max(x1 - x0, y1 - y0, hoehe) * (2.0 if kontext else 0.8)
+    if kontext:
+        r = max(r, 55.0)  # kleine Bauplätze: genug Umgebung zeigen
     cx, cy = (x0 + x1) / 2, (y0 + y1) / 2
 
     k = mm.kontext
