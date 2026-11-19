@@ -80,3 +80,11 @@ def test_schrift_unterbricht_fluchtlinien_nicht():
     umriss = [(0, 0), (20, 0), (20, 30), (0, 30)]
     erg = fluchtlinien_auswerten(b2, EXT, umriss, {0})
     assert erg.flaeche is not None and abs(Polygon(erg.flaeche).area - 210) < 30, erg.protokoll
+
+
+def test_hoehe_und_bauweise_aus_texten():
+    from bebauungsstudie.daten.planschrift import Wort, bauweise_aus_woertern, hoehe_aus_woertern
+    w = [Wort("10", 1, 1, 90), Wort("105m", 2, 2, 80), Wort("G", 3, 3, 70)]
+    assert bauweise_aus_woertern(w, 0, 0)[0] == "g"
+    assert hoehe_aus_woertern(w, 0, 0)[0] == 10.5
+    assert hoehe_aus_woertern([Wort("10.5m", 0, 0, 90)], 0, 0)[0] == 10.5

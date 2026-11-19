@@ -101,7 +101,7 @@ def bauweise_aus_woertern(woerter: list[Wort], x: float, y: float, radius: float
     from shapely.geometry import Point
     import re
 
-    muster = re.compile(r"^(?:W|GB|GS|IG)?(?:III|II|IV|VI|I|V|1|l)?(ogk|gk|gr|o|g)$")
+    muster = re.compile(r"^(?:W|GB|GS|IG)?(?:III|II|IV|VI|I|V)?(ogk|gk|gr|o|g|O|G)$")
     kandidaten = []
     for w in woerter:
         t = w.text.strip(".,;:'\"|")
@@ -112,7 +112,7 @@ def bauweise_aus_woertern(woerter: list[Wort], x: float, y: float, radius: float
             d = math.hypot(w.x - x, w.y - y)
             im_gebiet = gebiet is not None and gebiet.buffer(3).contains(Point(w.x, w.y))
             if d <= radius or im_gebiet:
-                kandidaten.append((d, m.group(1), w))
+                kandidaten.append((d, m.group(1).lower(), w))
     if not kandidaten:
         return None, "keine Bauweisen-Beschriftung im Umkreis erkannt"
     # dieselbe Beschriftung wird in mehreren Drehungen gefunden: nach Stimmen gewichten
@@ -131,7 +131,7 @@ def hoehe_aus_woertern(woerter: list[Wort], x: float, y: float, radius: float = 
 
     from shapely.geometry import Point
 
-    muster = re.compile(r"^(\d{1,2}[.,]\d{1,2})m$")
+    muster = re.compile(r"^(\d{1,2})[.,]?(\d)m$")
     funde = []
     for w in woerter:
         m = muster.match(w.text.strip(".;:'\"|"))
@@ -139,7 +139,7 @@ def hoehe_aus_woertern(woerter: list[Wort], x: float, y: float, radius: float = 
             continue
         d = math.hypot(w.x - x, w.y - y)
         if d <= radius or (gebiet is not None and gebiet.buffer(3).contains(Point(w.x, w.y))):
-            funde.append((d, float(m.group(1).replace(",", "."))))
+            funde.append((d, float(f"{m.group(1)}.{m.group(2)}")))
     if not funde:
         return None, None
     d, h = min(funde)
