@@ -25,7 +25,7 @@ Vorabschätzung, keine Rechtsauskunft. Datenquellen: Stadt Wien – data.wien.gv
 
 - Adresssuche Stadt Wien: TimeoutError: The read operation timed out
 - Adresssuche OpenStreetMap: 1 Treffer
-- Widmung: nicht abrufbar (TimeoutError: The read operation timed out)
+- Widmung: nicht abrufbar (HTTPError: HTTP Error 500: )
 - Zonen: nicht abrufbar (HTTPError: HTTP Error 500: )
 - Bausperre: nicht abrufbar (HTTPError: HTTP Error 500: )
 - Stellplatzzone: nicht abrufbar (HTTPError: HTTP Error 500: )
