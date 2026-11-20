@@ -16,13 +16,14 @@ Vorabschätzung, keine Rechtsauskunft. Datenquellen: Stadt Wien – data.wien.gv
 
 - Grundstück: KG 01304, Grundstück 453/47, 453/16: 692 m² laut BEV-Katastralmappe (Stichtag 01.10.2026), Straßenkanten [0, 3, 4]
 - Bauweise: o (aus der Planbeschriftung gelesen, bitte prüfen)
+- Festgesetzte Gebäudehöhe: keine erkannt (Höhe nach Bauklasse)
 - Abstand der Fluchtlinien (Straßenbreite): 12.0 m (aus dem Planbild gemessen, schmalste angrenzende Straße)
 - Bebaubare Fläche: innerhalb der aus dem Planbild erkannten Baufluchtlinien (bitte prüfen)
 - Besondere Bestimmungen des Plandokuments: nicht berücksichtigt
 
 ## Protokoll
 
-- Adresssuche Stadt Wien: HTTPError: HTTP Error 404: Not Found
+- Adresssuche Stadt Wien: RuntimeError: HTTP 404 von https://data.wien.gv.at/daten/OGDAddressService/rest/AddressSearch: <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"> <html xmlns="http://www.w3.org/1999/xhtml" lang="de" xml:lang="de"> <head><meta name="viewport" content="width=device-width, initial-scale=1.0" /> <link rel="stylesheet" href=
 - Adresssuche OpenStreetMap: 1 Treffer
 - Widmung: W1 (Wohngebiet Bauklasse 1)
 - Schutzzone: nein, Wohnzone: nein
@@ -34,13 +35,38 @@ Vorabschätzung, keine Rechtsauskunft. Datenquellen: Stadt Wien – data.wien.gv
 - Kataster: Grundstück 453/47 ist überbaut und grenzt nicht an die Straße; mit dem einzigen Nachbargrundstück 453/16 zum Bauplatz zusammengelegt (bitte prüfen).
 - Kataster: Nutzung Gebäude 111 m², Garten 580 m²; Straßenkanten [0, 3, 4]; Nachbargrundstücke 453/15 (883 m²), 453/17 (544 m²)
 - Fluchtlinien-Bild: 768×768 px, 0.20 m/px, rote Pixel 4.4%
+- Linien 3.7%, Schrift 0.7% der Bildfläche
 - Baufluchtlinien: geschlossene Fläche 1048 m² erkannt, davon 272 m² im Grundstück
 - Straßenkante 0: Abstand der Baulinien ca. 24.5 m (Messungen 24.3, 24.3, 24.3, 24.2, 24.2)
 - Straßenkante 3: Abstand der Baulinien ca. 12.0 m (Messungen 12.0, 12.0, 3.7, 3.6, 12.1)
 - Straßenkante 4: Abstand der Baulinien ca. 12.0 m (Messungen 11.9, 11.9, 11.9, 12.0, 11.8)
-- Planbeschriftung: &, ,, 02, 1, 16, 2, 20, 45,, 6, 6.8m, 7, 9, >, @, De,, KK, OZ, TH, W,, Wi, Wy, \, g, naw, o, ov, we, wn, x,, |, ©, °, —, ‘, ‘cam
+- Planbeschriftung: %, %,, &, &%, (6, (Ten, (|, ,, /, 0, 00, 00°27, 02, 12, 15, 19, 2, 20, 3, 4, 45, 46, 4~, 5m, 6, 6.5m, 6.8m, 65, 65,7, 65m, 7, 9, <0, =, =e, =|, >, ?, A, Cee)
 - Bauweise „o“ aus der Planbeschriftung gelesen (38 m vom Grundstück, innerhalb derselben Baufluchtlinien)
 - Bebauungsplan: Ausschnitt als Bild beigelegt
+- Umgebung: 38 Baukörper im Umkreis von 65 m (Stadt Wien, Baukörpermodell)
+- Luftbild: Ebene lb (Stadt Wien, CC BY 4.0)
+
+## Vergleich Neubau und Nachverdichtung
+
+| | Neubau (Abbruch) | Nachverdichtung (Bestand erhalten) |
+|---|---:|---:|
+| BGF gesamt | 623 m² | 655 m² |
+| davon neu | 623 m² | 438 m² |
+| Wohnungen neu | 7 | 5 |
+
+- Bestand Grundfläche m²: 115.4 – Baukörper am Bauplatz laut Baukörpermodell
+- Bestand BGF m² (geschätzt): 216.9 – Grundfläche × Geschoße (1, 2), aus Höhe / 3.2 m geschätzt
+- Aufstockung BGF m²: 104.7 – Bestand in der bebaubaren Fläche auf 3 Vollgeschoße erhöht
+- Dachgeschoßausbau BGF m²: 66.4 – Dachgeschoße nach § 81 Abs. 4 über dem voll hohen Baukörper (Bestand + Zubau)
+- Zubau im Hof BGF m²: 267.3 – freie bebaubare Fläche × 3 Vollgeschoße
+- Zusätzliche BGF m²: 438.4 – Aufstockung + Dachgeschoßausbau + Zubau (Differenz zum Bestand)
+- BGF nach Nachverdichtung m²: 655.2 – Bestand + zusätzliche BGF
+- Zusätzliche Wohnungen: 5 – zusätzliche BGF × 0.75 / 65.0 m²
+- Vergleich Neubau BGF m²: 622.6 – Neubau nach Abbruch; Differenz zur Nachverdichtung -33 m²
+- Hinweis: Aufstockung: Tragfähigkeit von Wänden und Fundamenten, Brandschutz und Erschließung (Lift) des Bestands prüfen.
+- Hinweis: Zubau im Hof: Belichtung der bestehenden Hoffenster und Abstände zum Bestand prüfen.
+- Hinweis: Teile des Bestands liegen außerhalb der bebaubaren Fläche und bleiben unverändert (kein Ausbau dort).
+- Hinweis: Bestandsgeschoße aus der Gebäudehöhe des Baukörpermodells geschätzt; mit Bestandsplänen abgleichen.
 
 ## Ergebnis
 
@@ -64,13 +90,34 @@ Hinweise:
 - Stellplatzzone 2: mögliche Reduktion der Pflichtstellplätze nach WGarG § 50a ist noch nicht eingerechnet.
 - Dachaufbauten nach § 81 Abs. 6 nicht berücksichtigt.
 - Gilt, wenn der Bebauungsplan gärtnerische Ausgestaltung vorsieht.
+
+
+Nachverdichtung (Bestand erhalten)
+
+Bestand Grundfläche m²: 115.4  Baukörper am Bauplatz laut Baukörpermodell
+Bestand BGF m² (geschätzt): 216.9  Grundfläche × Geschoße (1, 2), aus Höhe / 3.2 m geschätzt
+Aufstockung BGF m²: 104.7  Bestand in der bebaubaren Fläche auf 3 Vollgeschoße erhöht
+Dachgeschoßausbau BGF m²: 66.4  Dachgeschoße nach § 81 Abs. 4 über dem voll hohen Baukörper (Bestand + Zubau)
+Zubau im Hof BGF m²: 267.3  freie bebaubare Fläche × 3 Vollgeschoße
+Zusätzliche BGF m²: 438.4  Aufstockung + Dachgeschoßausbau + Zubau (Differenz zum Bestand)
+BGF nach Nachverdichtung m²: 655.2  Bestand + zusätzliche BGF
+Zusätzliche Wohnungen: 5  zusätzliche BGF × 0.75 / 65.0 m²
+Vergleich Neubau BGF m²: 622.6  Neubau nach Abbruch; Differenz zur Nachverdichtung -33 m²
+
+Hinweise:
+- Aufstockung: Tragfähigkeit von Wänden und Fundamenten, Brandschutz und Erschließung (Lift) des Bestands prüfen.
+- Zubau im Hof: Belichtung der bestehenden Hoffenster und Abstände zum Bestand prüfen.
+- Teile des Bestands liegen außerhalb der bebaubaren Fläche und bleiben unverändert (kein Ausbau dort).
+- Bestandsgeschoße aus der Gebäudehöhe des Baukörpermodells geschätzt; mit Bestandsplänen abgleichen.
 ```
 
 - plaene.pdf
+- umgebung.png
 - lageplan.png
 - schnitt.png
 - ansicht.png
 - axonometrie.png
+- nachverdichtung.png
 - modell.ifc
 - plaene.dxf
 - bericht.txt
