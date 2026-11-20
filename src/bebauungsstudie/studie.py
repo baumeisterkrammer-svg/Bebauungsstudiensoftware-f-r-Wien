@@ -158,7 +158,7 @@ def _bebaubarer_grundriss(bp: Bauplatz, studie_hinweise: list[str]) -> BaseGeome
         seite, ohne = kuppelseite(bp)
         if ohne:
             studie_hinweise.append(
-                f"Gekuppelte Bauweise: Anbau an die {seite} Grundgrenze (von der Straße aus; "
+                f"Gekuppelte Bauweise: Anbau an die {seite}e Grundgrenze (von der Straße aus; "
                 "die Seite mit der größeren bebaubaren Fläche). Setzt voraus, dass der Nachbar "
                 "an dieselbe Grenze anbaut oder angebaut hat; bitte prüfen.")
     elif bp.bauweise in ("gk", "ogk", "gr"):
