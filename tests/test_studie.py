@@ -50,3 +50,18 @@ def test_geschlossene_bauweise_dachgeschoss_von_nachbar_zu_nachbar():
     minx, miny, maxx, maxy = dg.bounds
     assert abs(minx - 0) < 1e-6 and abs(maxx - 8) < 1e-6  # volle Breite
     assert abs(miny - 2) < 1e-6 and abs(maxy - 12) < 1e-6  # Straße und Hof eingerückt
+
+
+def test_gekuppelte_bauweise_baut_an_eine_seitengrenze():
+    from bebauungsstudie.studie import feuermauern
+    from bebauungsstudie.regeln.bauklassen import Bauklasse as BK
+    umriss = [(0, 0), (18, 0), (18, 30), (0, 30)]
+    offen = erstelle_studie(Bauplatz(umriss, {0}, BK.I, "ogk", fluchtlinienabstand=12.0))
+    gek = erstelle_studie(Bauplatz(umriss, {0}, BK.I, "ogk", fluchtlinienabstand=12.0, gekuppelt=True))
+    b_off = offen.grundriss.bounds
+    b_gek = gek.grundriss.bounds
+    assert abs((b_gek[2] - b_gek[0]) - (b_off[2] - b_off[0]) - (b_off[0] - 0)) < 0.01
+    assert b_gek[0] == 0 or b_gek[2] == 18
+    assert len(feuermauern(gek.bauplatz)) == 1
+    assert gek.werte["BGF m²"].wert > offen.werte["BGF m²"].wert
+    assert any("Gekuppelte Bauweise" in h for h in gek.hinweise)

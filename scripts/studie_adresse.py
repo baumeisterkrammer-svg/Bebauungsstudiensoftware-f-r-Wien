@@ -30,6 +30,8 @@ def main() -> int:
     ap.add_argument("--grundstuecke", default="",
                     help="weitere Grundstücksnummern des Bauplatzes, durch Komma getrennt")
     ap.add_argument("--rechteck", action="store_true", help="Kataster nicht verwenden")
+    ap.add_argument("--gekuppelt", action="store_true",
+                    help="bei Bauweise ogk gekuppelt rechnen (Anbau an eine seitliche Grenze)")
     ap.add_argument("--hoehe", type=float, default=None,
                     help="festgesetzte Gebäudehöhe laut Plan in m (sonst aus der Planschrift)")
     ap.add_argument("--bebaubar-max", type=float, default=None,
@@ -160,7 +162,8 @@ def main() -> int:
         "## Eingaben und Annahmen (im Plandokument nur als Bild, bitte prüfen)",
         "",
         f"- Grundstück: {grund_text}",
-        f"- Bauweise: {bauweise_text}",
+        f"- Bauweise: {bauweise_text}" + (" – gekuppelt gerechnet (Anbau an eine Seitengrenze)"
+                                          if a.gekuppelt and bauweise in ("ogk", "gk") else ""),
         (f"- Festgesetzte Gebäudehöhe: {festgesetzte_hoehe:.1f} m "
          + ("(Eingabe)" if a.hoehe else "(aus der Planbeschriftung, bitte prüfen)"))
         if festgesetzte_hoehe else "- Festgesetzte Gebäudehöhe: keine erkannt (Höhe nach Bauklasse)",
@@ -189,6 +192,7 @@ def main() -> int:
         fluchtlinienabstand=strassenbreite,
         festgesetzte_hoehe=festgesetzte_hoehe,
         bebaubare_flaeche_max_m2=a.bebaubar_max,
+        gekuppelt=a.gekuppelt,
         fluchtlinien_flaeche=flucht.flaeche if flucht else None,
         schutzzone=st.schutzzone,
         gartensiedlung=st.gartensiedlung,

@@ -30,6 +30,10 @@ on:
       strassenbreite:
         description: "Abstand der Fluchtlinien in m (leer = unbekannt)"
         default: ""
+      gekuppelt:
+        description: "Bei Bauweise ogk gekuppelt rechnen (Anbau an eine Seitengrenze)"
+        type: boolean
+        default: false
       hoehe:
         description: "Festgesetzte Gebäudehöhe laut Plan in m (leer = aus der Planschrift)"
         default: ""
@@ -66,6 +70,7 @@ jobs:
       BAUWEISE: ${{ github.event.inputs.bauweise }}
       STRASSENBREITE: ${{ github.event.inputs.strassenbreite }}
       HOEHE: ${{ github.event.inputs.hoehe }}
+      GEKUPPELT: ${{ github.event.inputs.gekuppelt }}
       BEBAUBAR_MAX: ${{ github.event.inputs.bebaubar_max }}
       GRUNDSTUECKE: ${{ github.event.inputs.grundstuecke }}
       RECHTECK: ${{ github.event.inputs.rechteck }}
@@ -87,6 +92,7 @@ jobs:
           ARGS="--breite $BREITE --tiefe $TIEFE --modus $MODUS"
           if [ -n "$BAUWEISE" ]; then ARGS="$ARGS --bauweise $BAUWEISE"; fi
           if [ -n "$STRASSENBREITE" ]; then ARGS="$ARGS --strassenbreite $STRASSENBREITE"; fi
+          if [ "$GEKUPPELT" = "true" ]; then ARGS="$ARGS --gekuppelt"; fi
           if [ -n "$HOEHE" ]; then ARGS="$ARGS --hoehe $HOEHE"; fi
           if [ -n "$BEBAUBAR_MAX" ]; then ARGS="$ARGS --bebaubar-max $BEBAUBAR_MAX"; fi
           if [ -n "$GRUNDSTUECKE" ]; then ARGS="$ARGS --grundstuecke $GRUNDSTUECKE"; fi

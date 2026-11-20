@@ -41,6 +41,9 @@ class Bauplatz:
     wohngebiet: bool = True
     dachneigung: float | None = None
     stellplatzregulativ_prozent: float = 100.0
+    gekuppelt: bool = False
+    """Bei „ogk“: gekuppelte statt offener Bauweise rechnen (Anbau an eine
+    seitliche Grenze). Bei „gk“ immer gekuppelt."""
     fluchtlinien_flaeche: list[tuple[float, float]] | None = None
     """Fläche innerhalb der Baufluchtlinien laut Bebauungsplan (falls bekannt).
     Ersetzt dann den pauschalen Vorgarten an den Straßenkanten."""
@@ -97,16 +100,68 @@ class Studie:
         return "\n".join(zeilen)
 
 
-def _bebaubarer_grundriss(bp: Bauplatz, studie_hinweise: list[str]) -> BaseGeometry:
+def _abzug(bp: Bauplatz, flaeche: BaseGeometry, abstand: float, vg: float,
+           ohne: set[int] = frozenset()) -> BaseGeometry:
+    for i in range(len(bp.umriss)):
+        if i in bp.strassenkanten:
+            d = vg if bp.vorgarten and not bp.fluchtlinien_flaeche else 0.0
+        else:
+            d = 0.0 if i in ohne else abstand
+        if d > 0:
+            streifen = bp.kante(i).buffer(d, cap_style="square", join_style="mitre")
+            flaeche = flaeche.difference(streifen)
+    return flaeche
+
+
+def _grundflaeche(bp: Bauplatz) -> tuple[BaseGeometry, float, float]:
     flaeche = bp.polygon
-    n = len(bp.umriss)
+    if bp.fluchtlinien_flaeche:
+        flaeche = flaeche.intersection(Polygon(bp.fluchtlinien_flaeche).buffer(0))
     vg = abstaende.vorgarten_tiefe(bp.vorgarten_tiefe).wert
     abstand = (
         abstaende.abstand_nachbargrenze(bp.bauklasse).wert
         if bp.bauklasse is not None and bp.bauweise != "g"
         else 0.0
     )
-    if bp.bauweise in ("gk", "ogk", "gr"):
+    return flaeche, abstand, vg
+
+
+def ist_gekuppelt(bp: Bauplatz) -> bool:
+    return bp.bauweise == "gk" or (bp.bauweise == "ogk" and bp.gekuppelt)
+
+
+def kuppelseite(bp: Bauplatz) -> tuple[str, set[int]]:
+    """Seitliche Grenze, an die gekuppelt angebaut wird: die Seite (links oder
+    rechts, von der Straße aus), die die größere bebaubare Fläche ergibt."""
+    seiten = _seitenkanten(bp)
+    if not seiten:
+        return "", set()
+    haupt = max(bp.strassenkanten, key=lambda i: bp.kante(i).length)
+    (x0, y0), (x1, y1) = bp.kante(haupt).coords
+    l = math.hypot(x1 - x0, y1 - y0)
+    tx, ty = (x1 - x0) / l, (y1 - y0) / l
+    c = bp.polygon.centroid
+    gruppen: dict[str, set[int]] = {"rechts": set(), "links": set()}
+    for i in seiten:
+        m = bp.kante(i).interpolate(0.5, normalized=True)
+        gruppen["rechts" if (m.x - c.x) * tx + (m.y - c.y) * ty > 0 else "links"].add(i)
+    flaeche, abstand, vg = _grundflaeche(bp)
+    wahl = max((k for k in gruppen if gruppen[k]),
+               key=lambda k: _abzug(bp, flaeche, abstand, vg, gruppen[k]).area)
+    return wahl, gruppen[wahl]
+
+
+def _bebaubarer_grundriss(bp: Bauplatz, studie_hinweise: list[str]) -> BaseGeometry:
+    flaeche, abstand, vg = _grundflaeche(bp)
+    ohne: set[int] = set()
+    if ist_gekuppelt(bp):
+        seite, ohne = kuppelseite(bp)
+        if ohne:
+            studie_hinweise.append(
+                f"Gekuppelte Bauweise: Anbau an die {seite} Grundgrenze (von der Straße aus; "
+                "die Seite mit der größeren bebaubaren Fläche). Setzt voraus, dass der Nachbar "
+                "an dieselbe Grenze anbaut oder angebaut hat; bitte prüfen.")
+    elif bp.bauweise in ("gk", "ogk", "gr"):
         studie_hinweise.append(
             f"Bauweise {bp.bauweise}: Anbau an eine Grenze ist zulässig, "
             "hier aber konservativ wie offene Bauweise gerechnet."
@@ -116,17 +171,7 @@ def _bebaubarer_grundriss(bp: Bauplatz, studie_hinweise: list[str]) -> BaseGeome
             "Geschlossene Bauweise: hintere Baufluchtlinie aus dem Plandokument "
             "muss ergänzt werden."
         )
-    if bp.fluchtlinien_flaeche:
-        flaeche = flaeche.intersection(Polygon(bp.fluchtlinien_flaeche).buffer(0))
-    for i in range(n):
-        if i in bp.strassenkanten:
-            d = vg if bp.vorgarten and not bp.fluchtlinien_flaeche else 0.0
-        else:
-            d = abstand
-        if d > 0:
-            streifen = bp.kante(i).buffer(d, cap_style="square", join_style="mitre")
-            flaeche = flaeche.difference(streifen)
-    return flaeche
+    return _abzug(bp, flaeche, abstand, vg, ohne)
 
 
 def _kuerzere_seite(geom: BaseGeometry) -> float:
@@ -136,27 +181,35 @@ def _kuerzere_seite(geom: BaseGeometry) -> float:
     return min(seiten)
 
 
-def feuermauern(bp: Bauplatz) -> list[LineString]:
-    """Seitliche Grundstücksgrenzen, an die in geschlossener Bauweise angebaut wird.
-
-    Dort steigt der Umriss nach § 81 nicht an: Dachgeschoße reichen von
-    Nachbar zu Nachbar. Seitlich = keine Straßenkante und mehr als 45° zur
-    maßgeblichen Straßenkante geneigt."""
-    if bp.bauweise != "g" or not bp.strassenkanten:
+def _seitenkanten(bp: Bauplatz) -> list[int]:
+    """Keine Straßenkante und mehr als 45° zur maßgeblichen Straßenkante geneigt."""
+    if not bp.strassenkanten:
         return []
-    n = len(bp.umriss)
     haupt = max(bp.strassenkanten, key=lambda i: bp.kante(i).length)
     (x0, y0), (x1, y1) = bp.kante(haupt).coords
     richtung = math.atan2(y1 - y0, x1 - x0)
     seiten = []
-    for i in range(n):
+    for i in range(len(bp.umriss)):
         if i in bp.strassenkanten:
             continue
         (a0, b0), (a1, b1) = bp.kante(i).coords
         d = abs(math.atan2(b1 - b0, a1 - a0) - richtung) % math.pi
         if min(d, math.pi - d) > math.radians(45):
-            seiten.append(bp.kante(i))
+            seiten.append(i)
     return seiten
+
+
+def feuermauern(bp: Bauplatz) -> list[LineString]:
+    """Seitliche Grundstücksgrenzen, an die angebaut wird: in geschlossener
+    Bauweise beide Seiten, gekuppelt die gewählte Seite.
+
+    Dort steigt der Umriss nach § 81 nicht an: Dachgeschoße reichen bis an
+    die Grenze."""
+    if bp.bauweise == "g":
+        return [bp.kante(i) for i in _seitenkanten(bp)]
+    if ist_gekuppelt(bp):
+        return [bp.kante(i) for i in sorted(kuppelseite(bp)[1])]
+    return []
 
 
 def trakttiefe(bp: Bauplatz, grundriss: BaseGeometry) -> float:
@@ -265,7 +318,7 @@ def erstelle_studie(bp: Bauplatz, annahmen: Annahmen | None = None) -> Studie:
         dachgeschoss_grundriss(bp, grundriss, (trakt - b) / 2).area * anteil
         for b in dg.wert
     ]
-    if feuermauern(bp):
+    if feuermauern(bp) and bp.bauweise == "g":
         hinweise.append("Geschlossene Bauweise: Dachgeschoße reichen von Nachbar zu Nachbar, "
                         "der Umriss steigt nur von Straßen- und Hoffront an (§ 81).")
     w["Dachgeschoße"] = dg
