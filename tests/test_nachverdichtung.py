@@ -47,3 +47,18 @@ def test_plan_seite(tmp_path):
     namen = {p.name for p in exportiere_alles(s, tmp_path)}
     assert "nachverdichtung.png" in namen
     assert "Nachverdichtung" in (tmp_path / "bericht.txt").read_text(encoding="utf-8")
+
+
+def test_dachgeschoss_mittig_ueber_bestandstrakt():
+    # Straßentrakt 5–15 m mit voller Geschoßzahl, dahinter ein höherer Hoftrakt (bleibt wie er ist):
+    # das DG muss mittig über dem Straßentrakt liegen, nicht über der Mitte des Neubau-Grundrisses
+    s = _studie()
+    n = s.werte["Vollgeschoße"].wert
+    nv = erstelle_nachverdichtung(s, [(box(0, 5, 16, 15), n * 3.2 + 0.3),
+                                      (box(0, 15, 16, 30), (n + 2) * 3.2 + 0.3)])
+    dgs = [v.flaeche for v in nv.volumen if v.art == "dachgeschoss"]
+    assert dgs
+    for d in dgs:
+        b = d.bounds
+        assert b[1] >= 5 - 0.01 and b[3] <= 15 + 0.01
+        assert abs((b[1] - 5) - (15 - b[3])) < 0.2

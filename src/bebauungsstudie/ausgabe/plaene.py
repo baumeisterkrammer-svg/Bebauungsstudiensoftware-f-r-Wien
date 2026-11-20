@@ -30,6 +30,8 @@ FARBE_DG = "#e9a06b"
 FARBE_GRENZE = "#222222"
 FARBE_HILF = "#5b7db1"
 FARBE_BESTAND = "#d9d9d9"
+FARBE_NACHBAR = "#ffffff"
+KANTE_NACHBAR = "#8c8c8c"
 
 
 def _kontext_lokal(mm: Massenmodell):
@@ -338,24 +340,31 @@ def _axonometrie(studie: Studie, mm: Massenmodell, titel: str, volumen, hoehe: f
     xs, ys = bp.exterior.xy
     ax.plot(xs, ys, [0.05] * len(xs), color="#d00000", lw=1.6, zorder=1)
 
-    koerper = []
+    # Nachbarn: hell und durchscheinend, nur Umgebung. Alle Flächen in einer
+    # Sammlung, die matplotlib Fläche für Fläche nach Tiefe sortiert; Böden entfallen.
+    nachbar_flaechen = []
     for poly, h, am in kontext:
         if am:
             continue
         c = poly.centroid
         if abs(c.x - cx) > r / 2 or abs(c.y - cy) > r / 2:
             continue
-        ring = list(poly.exterior.coords)[:-1]
-        koerper.append((0.0, np.dot([c.x, c.y, h / 2], blick), _prisma(ring, 0, h), FARBE_BESTAND, "#888"))
+        nachbar_flaechen += _prisma(list(poly.exterior.coords)[:-1], 0, h)[1:]
+    if nachbar_flaechen:
+        ax.add_collection3d(Poly3DCollection(nachbar_flaechen, facecolor=FARBE_NACHBAR, alpha=0.4,
+                                             edgecolor=KANTE_NACHBAR, lw=0.4, zsort="average",
+                                             zorder=2))
+    # Projekt: deckend und immer vor den Nachbarn; gestapelte Körper untere zuerst,
+    # dann nach Blicktiefe (Malerverfahren)
+    koerper = []
     for p, z0, z1, farbe, kante in volumen:
         c = p.centroid
         koerper.append((round(z0, 1), np.dot([c.x, c.y, (z0 + z1) / 2], blick),
                         _prisma(list(p.exterior.coords)[:-1], z0, z1), farbe, kante))
-    # gestapelte Körper: untere zuerst, dann nach Blicktiefe (Malerverfahren)
     koerper.sort(key=lambda k_: (k_[0], k_[1]))
     for i, (_, _, flaechen, farbe, kante) in enumerate(koerper):
         ax.add_collection3d(Poly3DCollection(flaechen, facecolor=farbe, edgecolor=kante, lw=0.5,
-                                             zorder=2 + i / (len(koerper) + 1)))
+                                             zorder=3 + i / (len(koerper) + 1)))
     ax.set_xlim(cx - r / 2, cx + r / 2)
     ax.set_ylim(cy - r / 2, cy + r / 2)
     zf = max(0.25, 1.3 * hoehe / r) if kontext else 1.0
@@ -363,6 +372,9 @@ def _axonometrie(studie: Studie, mm: Massenmodell, titel: str, volumen, hoehe: f
     ax.set_box_aspect((1, 1, zf), zoom=1.0)
     ax.view_init(elev=elev, azim=azim)
     ax.set_axis_off()
+    legende = list(legende or [])
+    if nachbar_flaechen:
+        legende.append((FARBE_NACHBAR, "Nachbargebäude (Bestand, Stadt Wien)"))
     if legende:
         from matplotlib.patches import Patch
         fig.legend([Patch(facecolor=f, edgecolor="#555") for f, _ in legende], [t for _, t in legende],
@@ -382,7 +394,8 @@ def seite_axonometrie(studie: Studie, mm: Massenmodell):
     titel = "Axonometrie im Bestand" if mm.kontext else "Axonometrie"
     if studie.nachverdichtung is not None:
         titel = "Neubau (nach Abbruch)" + (" im Bestand" if mm.kontext else "")
-    return _axonometrie(studie, mm, titel, volumen, mm.gesamthoehe)
+    legende = [(FARBE_BAU, "Neubau Vollgeschoße"), (FARBE_DG, "Neubau Dachgeschoße")]
+    return _axonometrie(studie, mm, titel, volumen, mm.gesamthoehe, legende=legende)
 
 
 def seite_nachverdichtung(studie: Studie, mm: Massenmodell):

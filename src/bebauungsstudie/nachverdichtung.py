@@ -6,8 +6,8 @@ rechnet, was innerhalb derselben Regeln zusätzlich möglich ist:
 
 - Aufstockung: Bestand innerhalb der bebaubaren Fläche bis zur Zahl der
   zulässigen Vollgeschoße erhöhen
-- Dachgeschoßausbau: Dachgeschoße wie beim Neubau, über allen Teilen, die
-  danach die volle Geschoßzahl erreichen
+- Dachgeschoßausbau: Dachgeschoße über allen Teilen, die danach die volle
+  Geschoßzahl erreichen; der Umriss steigt von deren Fronten an
 - Zubau im Hof: bebaubare Fläche, die noch frei ist, mit voller Geschoßzahl
 
 Bestand außerhalb der bebaubaren Fläche bleibt unverändert stehen. Die
@@ -24,6 +24,7 @@ from shapely.geometry.base import BaseGeometry
 from shapely.ops import unary_union
 
 from .herleitung import Ergebnis, Quelle
+from .regeln import umriss
 from .studie import Studie, dachgeschoss_grundriss, trakttiefe
 
 ARTEN = ("bestand", "aufstockung", "zubau", "dachgeschoss")
@@ -124,10 +125,17 @@ def erstelle_nachverdichtung(studie: Studie, bestand: list[tuple[BaseGeometry, f
     # Dachgeschoße wie beim Neubau, aber nur über voll hohen Teilen
     hoch = unary_union([v.buffer(0.1, join_style="mitre") for v in voll]).buffer(
         -0.1, join_style="mitre") if voll else Polygon()
-    if not hoch.is_empty and w.get("Dachgeschoße") is not None:
-        trakt = a.trakttiefe or trakttiefe(bp, grundriss)
-        for k, breite in enumerate(w["Dachgeschoße"].wert):
-            dg = dachgeschoss_grundriss(bp, grundriss, (trakt - breite) / 2).intersection(hoch)
+    if not hoch.is_empty and w.get("Gebäudehöhe m") is not None:
+        # Umriss von den Fronten des tatsächlichen Baukörpers (Bestand + Zubau) aus,
+        # nicht vom Neubau-Grundriss: sonst sitzt das DG über einem schmaleren
+        # Bestandstrakt versetzt.
+        trakt = a.trakttiefe or trakttiefe(bp, hoch)
+        winkel = umriss.umrisswinkel(bp.gartensiedlung, bp.dachneigung).wert
+        dach = umriss.max_dachhoehe(bp.bauklasse, bp.bauweise, bp.wohngebiet).wert
+        rest = w["Gebäudehöhe m"].wert - n * gh
+        breiten = umriss.dachgeschosse(trakt, winkel, dach + rest, gh).wert
+        for k, breite in enumerate(breiten):
+            dg = dachgeschoss_grundriss(bp, hoch, (trakt - breite) / 2)
             for q in _teile(dg, 5.0):
                 nv.volumen.append(Volumen(q, (n + k) * gh, (n + k + 1) * gh, "dachgeschoss"))
 
@@ -150,7 +158,7 @@ def erstelle_nachverdichtung(studie: Studie, bestand: list[tuple[BaseGeometry, f
         "Aufstockung BGF m²": Ergebnis(round(auf, 1), q_regel,
                                        f"Bestand in der bebaubaren Fläche auf {n} Vollgeschoße erhöht"),
         "Dachgeschoßausbau BGF m²": Ergebnis(round(dgf, 1), q_regel,
-                                              "Dachgeschoße wie beim Neubau über den voll hohen Teilen"),
+                                              "Dachgeschoße nach § 81 Abs. 4 über dem voll hohen Baukörper (Bestand + Zubau)"),
         "Zubau im Hof BGF m²": Ergebnis(round(zu, 1), q_regel,
                                         f"freie bebaubare Fläche × {n} Vollgeschoße"),
         "Zusätzliche BGF m²": Ergebnis(round(plus, 1), q_regel,
