@@ -50,19 +50,19 @@ Vorabschätzung, keine Rechtsauskunft. Datenquellen: Stadt Wien – data.wien.gv
 
 | | Neubau (Abbruch) | Nachverdichtung (Bestand erhalten) |
 |---|---:|---:|
-| BGF gesamt | 623 m² | 662 m² |
-| davon neu | 623 m² | 445 m² |
+| BGF gesamt | 623 m² | 655 m² |
+| davon neu | 623 m² | 438 m² |
 | Wohnungen neu | 7 | 5 |
 
 - Bestand Grundfläche m²: 115.4 – Baukörper am Bauplatz laut Baukörpermodell
 - Bestand BGF m² (geschätzt): 216.9 – Grundfläche × Geschoße (1, 2), aus Höhe / 3.2 m geschätzt
 - Aufstockung BGF m²: 104.7 – Bestand in der bebaubaren Fläche auf 3 Vollgeschoße erhöht
-- Dachgeschoßausbau BGF m²: 72.7 – Dachgeschoße wie beim Neubau über den voll hohen Teilen
+- Dachgeschoßausbau BGF m²: 66.4 – Dachgeschoße nach § 81 Abs. 4 über dem voll hohen Baukörper (Bestand + Zubau)
 - Zubau im Hof BGF m²: 267.3 – freie bebaubare Fläche × 3 Vollgeschoße
-- Zusätzliche BGF m²: 444.7 – Aufstockung + Dachgeschoßausbau + Zubau (Differenz zum Bestand)
-- BGF nach Nachverdichtung m²: 661.5 – Bestand + zusätzliche BGF
+- Zusätzliche BGF m²: 438.4 – Aufstockung + Dachgeschoßausbau + Zubau (Differenz zum Bestand)
+- BGF nach Nachverdichtung m²: 655.2 – Bestand + zusätzliche BGF
 - Zusätzliche Wohnungen: 5 – zusätzliche BGF × 0.75 / 65.0 m²
-- Vergleich Neubau BGF m²: 622.6 – Neubau nach Abbruch; Differenz zur Nachverdichtung -39 m²
+- Vergleich Neubau BGF m²: 622.6 – Neubau nach Abbruch; Differenz zur Nachverdichtung -33 m²
 - Hinweis: Aufstockung: Tragfähigkeit von Wänden und Fundamenten, Brandschutz und Erschließung (Lift) des Bestands prüfen.
 - Hinweis: Zubau im Hof: Belichtung der bestehenden Hoffenster und Abstände zum Bestand prüfen.
 - Hinweis: Teile des Bestands liegen außerhalb der bebaubaren Fläche und bleiben unverändert (kein Ausbau dort).
@@ -97,12 +97,12 @@ Nachverdichtung (Bestand erhalten)
 Bestand Grundfläche m²: 115.4  Baukörper am Bauplatz laut Baukörpermodell
 Bestand BGF m² (geschätzt): 216.9  Grundfläche × Geschoße (1, 2), aus Höhe / 3.2 m geschätzt
 Aufstockung BGF m²: 104.7  Bestand in der bebaubaren Fläche auf 3 Vollgeschoße erhöht
-Dachgeschoßausbau BGF m²: 72.7  Dachgeschoße wie beim Neubau über den voll hohen Teilen
+Dachgeschoßausbau BGF m²: 66.4  Dachgeschoße nach § 81 Abs. 4 über dem voll hohen Baukörper (Bestand + Zubau)
 Zubau im Hof BGF m²: 267.3  freie bebaubare Fläche × 3 Vollgeschoße
-Zusätzliche BGF m²: 444.7  Aufstockung + Dachgeschoßausbau + Zubau (Differenz zum Bestand)
-BGF nach Nachverdichtung m²: 661.5  Bestand + zusätzliche BGF
+Zusätzliche BGF m²: 438.4  Aufstockung + Dachgeschoßausbau + Zubau (Differenz zum Bestand)
+BGF nach Nachverdichtung m²: 655.2  Bestand + zusätzliche BGF
 Zusätzliche Wohnungen: 5  zusätzliche BGF × 0.75 / 65.0 m²
-Vergleich Neubau BGF m²: 622.6  Neubau nach Abbruch; Differenz zur Nachverdichtung -39 m²
+Vergleich Neubau BGF m²: 622.6  Neubau nach Abbruch; Differenz zur Nachverdichtung -33 m²
 
 Hinweise:
 - Aufstockung: Tragfähigkeit von Wänden und Fundamenten, Brandschutz und Erschließung (Lift) des Bestands prüfen.
