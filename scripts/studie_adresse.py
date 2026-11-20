@@ -30,6 +30,10 @@ def main() -> int:
     ap.add_argument("--grundstuecke", default="",
                     help="weitere Grundstücksnummern des Bauplatzes, durch Komma getrennt")
     ap.add_argument("--rechteck", action="store_true", help="Kataster nicht verwenden")
+    ap.add_argument("--hoehe", type=float, default=None,
+                    help="festgesetzte Gebäudehöhe laut Plan in m (sonst aus der Planschrift)")
+    ap.add_argument("--bebaubar-max", type=float, default=None,
+                    help="höchstzulässige bebaute Fläche laut Plan in m² (z. B. Beschriftung „180 m²“)")
     ap.add_argument("--modus", default="beide", choices=["beide", "neubau", "nachverdichtung"],
                     help="Neubau (Abbruch), Nachverdichtung (Bestand erhalten) oder beide")
     ap.add_argument("--breite", type=float, default=20.0, help="Grundstücksbreite an der Straße (m)")
@@ -73,7 +77,7 @@ def main() -> int:
     plan_dateien = []
     flucht = None
     bauweise, bauweise_text = a.bauweise, (f"{a.bauweise} (Eingabe)" if a.bauweise else None)
-    festgesetzte_hoehe = None
+    festgesetzte_hoehe = a.hoehe
     strassenbreite, strassenbreite_text = a.strassenbreite, (
         f"{a.strassenbreite} m (Eingabe)" if a.strassenbreite else "unbekannt")
     try:
@@ -103,7 +107,7 @@ def main() -> int:
                         if bw:
                             bauweise, bauweise_text = bw, f"{bw} (aus der Planbeschriftung gelesen, bitte prüfen)"
                         hoehe, grund_h = planschrift.hoehe_aus_woertern(woerter, mitte.x, mitte.y, gebiet=gebiet)
-                        if hoehe:
+                        if hoehe and festgesetzte_hoehe is None:
                             festgesetzte_hoehe = hoehe
                             st.protokoll.append(grund_h)
                     else:
@@ -157,8 +161,11 @@ def main() -> int:
         "",
         f"- Grundstück: {grund_text}",
         f"- Bauweise: {bauweise_text}",
-        f"- Festgesetzte Gebäudehöhe: {festgesetzte_hoehe:.1f} m (aus der Planbeschriftung, bitte prüfen)"
+        (f"- Festgesetzte Gebäudehöhe: {festgesetzte_hoehe:.1f} m "
+         + ("(Eingabe)" if a.hoehe else "(aus der Planbeschriftung, bitte prüfen)"))
         if festgesetzte_hoehe else "- Festgesetzte Gebäudehöhe: keine erkannt (Höhe nach Bauklasse)",
+        f"- Höchstzulässige bebaute Fläche: {a.bebaubar_max:.0f} m² (Eingabe)" if a.bebaubar_max
+        else "- Höchstzulässige bebaute Fläche: keine angegeben",
         f"- Abstand der Fluchtlinien (Straßenbreite): {strassenbreite_text}",
         "- Bebaubare Fläche: " + ("innerhalb der aus dem Planbild erkannten Baufluchtlinien (bitte prüfen)"
                                   if flucht and flucht.flaeche else "pauschal mit Vorgarten 5 m gerechnet"),
@@ -181,6 +188,7 @@ def main() -> int:
         bauweise=bauweise,
         fluchtlinienabstand=strassenbreite,
         festgesetzte_hoehe=festgesetzte_hoehe,
+        bebaubare_flaeche_max_m2=a.bebaubar_max,
         fluchtlinien_flaeche=flucht.flaeche if flucht else None,
         schutzzone=st.schutzzone,
         gartensiedlung=st.gartensiedlung,

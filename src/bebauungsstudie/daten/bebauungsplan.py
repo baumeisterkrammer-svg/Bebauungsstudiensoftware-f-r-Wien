@@ -196,7 +196,7 @@ def _ist_strich(teil: np.ndarray, px: float, py: float, toleranz: float = 0.45) 
     from shapely.geometry import LineString, MultiPoint
     from skimage.morphology import skeletonize
 
-    ske = skeletonize(teil)
+    ske = skeletonize(teil, method="lee") > 0
     if ske.sum() < 2:
         return True
     nachbarn = ndimage.convolve(ske.astype(int), np.ones((3, 3), int), mode="constant") - 1
@@ -282,10 +282,15 @@ def fluchtlinien_auswerten(bild: np.ndarray, ext, umriss, strassenkanten,
     def beste_flaeche(maske_linien):
         zu = ndimage.binary_dilation(maske_linien, structure=scheibe)
         lab, anzahl = ndimage.label(~zu)
-        rand = set(np.unique(np.concatenate([lab[0], lab[-1], lab[:, 0], lab[:, -1]]))) - {0}
+        # Flächen, die breit an den Bildrand stoßen, sind offen (Straßen, Umland).
+        # Ein schmaler Kontakt ist erlaubt: ein Bauland-Streifen kann um den
+        # Baublock herum aus dem Ausschnitt laufen.
+        randpixel = np.concatenate([lab[0], lab[-1], lab[:, 0], lab[:, -1]])
+        kontakt = np.bincount(randpixel, minlength=anzahl + 1)
+        offen = {k for k in range(1, anzahl + 1) if kontakt[k] > 0.06 * randpixel.size}
         beste, beste_ueb = None, 0.0
         for k in range(1, anzahl + 1):
-            if k in rand:
+            if k in offen:
                 continue
             maske = lab == k
             flaeche = maske.sum() * pix

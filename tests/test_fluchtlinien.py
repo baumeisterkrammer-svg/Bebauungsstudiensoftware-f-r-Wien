@@ -103,3 +103,18 @@ def test_echter_plan_olbrichgasse():
     imgst = Polygon(erg.flaeche).intersection(Polygon(m["umriss"])).area
     assert 240 < imgst < 300, erg.protokoll
     assert 12.0 in erg.strassenbreiten.values()
+
+
+def test_wienerflurgasse40_streifen_um_den_block():
+    """Bauland-Streifen zwischen vorderer und hinterer Baufluchtlinie läuft um den
+    Baublock aus dem Ausschnitt; große Beschriftung („ogk“, „180m²“) darf ihn nicht teilen."""
+    import json
+    from pathlib import Path
+    from PIL import Image
+    d = Path(__file__).parent / "daten"
+    b = np.asarray(Image.open(d / "wienerflurgasse40_flucht.png"))
+    m = json.loads((d / "wienerflurgasse40_flucht.json").read_text())
+    erg = fluchtlinien_auswerten(b, m["ext"], [tuple(p) for p in m["umriss"]], set(m["kanten"]))
+    assert erg.flaeche is not None, erg.protokoll
+    imgst = Polygon(erg.flaeche).intersection(Polygon(m["umriss"])).area
+    assert 190 < imgst < 240, erg.protokoll

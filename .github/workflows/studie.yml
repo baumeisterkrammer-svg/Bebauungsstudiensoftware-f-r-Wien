@@ -30,6 +30,12 @@ on:
       strassenbreite:
         description: "Abstand der Fluchtlinien in m (leer = unbekannt)"
         default: ""
+      hoehe:
+        description: "Festgesetzte Gebäudehöhe laut Plan in m (leer = aus der Planschrift)"
+        default: ""
+      bebaubar_max:
+        description: "Höchstzulässige bebaute Fläche laut Plan in m² (leer = keine)"
+        default: ""
       modus:
         description: "Studienmodus: beide, neubau oder nachverdichtung"
         type: choice
@@ -59,6 +65,8 @@ jobs:
       TIEFE: ${{ github.event.inputs.tiefe || '40' }}
       BAUWEISE: ${{ github.event.inputs.bauweise }}
       STRASSENBREITE: ${{ github.event.inputs.strassenbreite }}
+      HOEHE: ${{ github.event.inputs.hoehe }}
+      BEBAUBAR_MAX: ${{ github.event.inputs.bebaubar_max }}
       GRUNDSTUECKE: ${{ github.event.inputs.grundstuecke }}
       RECHTECK: ${{ github.event.inputs.rechteck }}
       MODUS: ${{ github.event.inputs.modus || 'beide' }}
@@ -79,6 +87,8 @@ jobs:
           ARGS="--breite $BREITE --tiefe $TIEFE --modus $MODUS"
           if [ -n "$BAUWEISE" ]; then ARGS="$ARGS --bauweise $BAUWEISE"; fi
           if [ -n "$STRASSENBREITE" ]; then ARGS="$ARGS --strassenbreite $STRASSENBREITE"; fi
+          if [ -n "$HOEHE" ]; then ARGS="$ARGS --hoehe $HOEHE"; fi
+          if [ -n "$BEBAUBAR_MAX" ]; then ARGS="$ARGS --bebaubar-max $BEBAUBAR_MAX"; fi
           if [ -n "$GRUNDSTUECKE" ]; then ARGS="$ARGS --grundstuecke $GRUNDSTUECKE"; fi
           if [ "$RECHTECK" = "true" ]; then ARGS="$ARGS --rechteck"; fi
           python scripts/studie_adresse.py "$ADRESSE" ergebnis/studie $ARGS
