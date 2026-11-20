@@ -14,6 +14,7 @@ davon unversiegelt mind. m²: 258.6  [BO für Wien § 79 Abs. 6]  2/3 von 387.9 
 Bäume: 2  [BO für Wien § 79 Abs. 7]  387.9 m² / 200 m², aufgerundet = 2
 
 Hinweise:
+- Bauweise ogk: Anbau an eine Grenze ist zulässig, hier aber konservativ wie offene Bauweise gerechnet.
 - Stellplatzzone 3: mögliche Reduktion der Pflichtstellplätze nach WGarG § 50a ist noch nicht eingerechnet.
 - Dachaufbauten nach § 81 Abs. 6 nicht berücksichtigt.
 - Gilt, wenn der Bebauungsplan gärtnerische Ausgestaltung vorsieht.

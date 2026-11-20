@@ -15,7 +15,7 @@ Vorabschätzung, keine Rechtsauskunft. Datenquellen: Stadt Wien – data.wien.gv
 ## Eingaben und Annahmen (im Plandokument nur als Bild, bitte prüfen)
 
 - Grundstück: KG 01808, Grundstück 87/26: 446 m² laut BEV-Katastralmappe (Stichtag 01.10.2026), Straßenkanten [0]
-- Bauweise: o (Annahme, im Plandokument prüfen)
+- Bauweise: ogk (Eingabe)
 - Festgesetzte Gebäudehöhe: keine erkannt (Höhe nach Bauklasse)
 - Abstand der Fluchtlinien (Straßenbreite): 12.0 m (aus dem Planbild gemessen, schmalste angrenzende Straße)
 - Bebaubare Fläche: innerhalb der aus dem Planbild erkannten Baufluchtlinien (bitte prüfen)
@@ -36,8 +36,6 @@ Vorabschätzung, keine Rechtsauskunft. Datenquellen: Stadt Wien – data.wien.gv
 - Linien 4.3%, Schrift 1.4% der Bildfläche
 - Baufluchtlinien: geschlossene Fläche 822 m² erkannt, davon 143 m² im Grundstück
 - Straßenkante 0: Abstand der Baulinien ca. 12.0 m (Messungen 12.0, 12.1, 12.0, 12.0, 12.0)
-- Planbeschriftung: "5,00, $/, %, &, -, /, />, />*, /~, /~/, 0-2,, 00, 00%, 00°21, 09, 10S,, 12.00, 2, 2), 2.00, 20, 3, 3°?, 4%, 42.00, 48o, 5, 5,0., 5.00, 6, 7), 75., 8, 9, 90, =, =\, >, AN, AS
-- keine Bauweisen-Beschriftung im Umkreis erkannt
 - Bebauungsplan: Ausschnitt als Bild beigelegt
 - Umgebung: 64 Baukörper im Umkreis von 60 m (Stadt Wien, Baukörpermodell)
 - Luftbild: Ebene lb (Stadt Wien, CC BY 4.0)
@@ -83,6 +81,7 @@ davon unversiegelt mind. m²: 258.6  [BO für Wien § 79 Abs. 6]  2/3 von 387.9 
 Bäume: 2  [BO für Wien § 79 Abs. 7]  387.9 m² / 200 m², aufgerundet = 2
 
 Hinweise:
+- Bauweise ogk: Anbau an eine Grenze ist zulässig, hier aber konservativ wie offene Bauweise gerechnet.
 - Stellplatzzone 3: mögliche Reduktion der Pflichtstellplätze nach WGarG § 50a ist noch nicht eingerechnet.
 - Dachaufbauten nach § 81 Abs. 6 nicht berücksichtigt.
 - Gilt, wenn der Bebauungsplan gärtnerische Ausgestaltung vorsieht.
