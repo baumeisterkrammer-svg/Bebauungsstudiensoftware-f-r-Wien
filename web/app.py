@@ -53,17 +53,17 @@ class Paket:
 
 
 PAKETE: dict[str, Paket] = {p.id: p for p in (
-    Paket("basis", "Basis", 79, "Schnelle Ersteinschätzung",
+    Paket("basis", "Basis", 29, "Schnelle Ersteinschätzung",
           ("Widmung, Bauklasse, Bauweise", "Bebaubare Fläche, Höhe, Geschoße",
            "BGF, Nutzfläche, Wohnungen, Stellplätze", "Ausschnitt Flächenwidmungs- und Bebauungsplan",
            "Jede Zahl mit Rechtsquelle"),
           ("bericht.txt", "ergebnis.md", "bebauungsplan_*.png")),
-    Paket("standard", "Standard", 190, "Für Ankauf und Bankgespräch",
+    Paket("standard", "Standard", 49, "Für Ankauf und Bankgespräch",
           ("Alles aus Basis", "Pläne als PDF: Lageplan, Schnitt, Ansicht",
            "Axonometrie des Baukörpers", "Bilder (PNG) für Exposé und Präsentation"),
           ("bericht.txt", "ergebnis.md", "bebauungsplan_*.png", "plaene.pdf", "lageplan.png",
            "schnitt.png", "ansicht.png", "axonometrie.png"), empfohlen=True),
-    Paket("profi", "Profi", 390, "Für Planer und Weiterbearbeitung",
+    Paket("profi", "Profi", 69, "Für Planer und Weiterbearbeitung",
           ("Alles aus Standard", "3D-Modell IFC (BIM) mit Geschoßen und Flächen",
            "DXF für CAD mit Layern je Bauteil"),
           ("*",)),
