@@ -124,6 +124,26 @@ def exportiere_ifc(studie: Studie, modell: Massenmodell, pfad: str | Path) -> Pa
         if elemente:
             api.spatial.assign_container(f, products=elemente, relating_structure=storey)
 
+    # Nachbarbebauung aus dem Baukörpermodell der Stadt Wien
+    k = getattr(modell, "kontext", None)
+    if k is not None:
+        umgebung = []
+        for i, b in enumerate(k.bestand):
+            if b.am_bauplatz or b.grundriss.area < 2:
+                continue
+            pts = list(orient(b.grundriss, sign=1.0).exterior.coords)[:-1]
+            kp = api.root.create_entity(f, ifc_class="IfcBuildingElementProxy",
+                                        name=f"Bestand {i + 1} ({b.hoehe:.1f} m)")
+            rep = api.geometry.add_slab_representation(f, context=body, depth=b.hoehe, polyline=pts)
+            api.geometry.assign_representation(f, product=kp, representation=rep)
+            api.geometry.edit_object_placement(f, product=kp, matrix=_matrix(0, 0, 0))
+            ps = api.pset.add_pset(f, product=kp, name="Bebauungsstudie_Bestand")
+            api.pset.edit_pset(f, pset=ps, properties={
+                "Hoehe": b.hoehe, "Quelle": "Stadt Wien, Baukörpermodell FMZK (CC BY 4.0)"})
+            umgebung.append(kp)
+        if umgebung:
+            api.spatial.assign_container(f, products=umgebung, relating_structure=site)
+
     kennz = api.pset.add_pset(f, product=gebaeude, name="Bebauungsstudie_Kennzahlen")
     props = {}
     for name, e in studie.werte.items():

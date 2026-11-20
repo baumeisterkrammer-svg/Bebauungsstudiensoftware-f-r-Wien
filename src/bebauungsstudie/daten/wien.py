@@ -19,11 +19,29 @@ CRS = "EPSG:31256"  # MGI / Austria GK East, Meter
 USER_AGENT = "bebauungsstudie/0.1"
 
 
-def _hole(url: str, params: dict, timeout: float = 20) -> bytes:
+def _hole(url: str, params: dict, timeout: float = 20, versuche: int = 3) -> bytes:
+    """GET mit Wiederholung bei Serverfehlern (5xx) und Zeitüberschreitung."""
+    import time
+    import urllib.error
+
     voll = f"{url}?{urllib.parse.urlencode(params)}"
-    req = urllib.request.Request(voll, headers={"User-Agent": USER_AGENT})
-    with urllib.request.urlopen(req, timeout=timeout) as r:
-        return r.read()
+    for i in range(versuche):
+        req = urllib.request.Request(voll, headers={"User-Agent": USER_AGENT})
+        try:
+            with urllib.request.urlopen(req, timeout=timeout) as r:
+                return r.read()
+        except urllib.error.HTTPError as e:
+            if e.code < 500 or i == versuche - 1:
+                try:
+                    text = e.read()[:300].decode("utf-8", "replace")
+                except Exception:
+                    text = ""
+                raise RuntimeError(f"HTTP {e.code} von {url}: {' '.join(text.split())}") from e
+        except (TimeoutError, urllib.error.URLError):
+            if i == versuche - 1:
+                raise
+        time.sleep(3 * (i + 1))
+    raise RuntimeError("unerreichbar")
 
 
 @dataclass

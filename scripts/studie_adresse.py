@@ -18,8 +18,9 @@ from pathlib import Path
 
 from bebauungsstudie import Bauplatz, erstelle_studie
 from bebauungsstudie.ausgabe.paket import exportiere_alles
-from bebauungsstudie.daten import bebauungsplan, kataster, planschrift
+from bebauungsstudie.daten import bebauungsplan, kataster, kontext, planschrift
 from bebauungsstudie.daten.standort import ermittle_standort
+from bebauungsstudie.nachverdichtung import erstelle_nachverdichtung
 
 
 def main() -> int:
@@ -29,6 +30,14 @@ def main() -> int:
     ap.add_argument("--grundstuecke", default="",
                     help="weitere Grundstücksnummern des Bauplatzes, durch Komma getrennt")
     ap.add_argument("--rechteck", action="store_true", help="Kataster nicht verwenden")
+    ap.add_argument("--gekuppelt", action="store_true",
+                    help="bei Bauweise ogk gekuppelt rechnen (Anbau an eine seitliche Grenze)")
+    ap.add_argument("--hoehe", type=float, default=None,
+                    help="festgesetzte Gebäudehöhe laut Plan in m (sonst aus der Planschrift)")
+    ap.add_argument("--bebaubar-max", type=float, default=None,
+                    help="höchstzulässige bebaute Fläche laut Plan in m² (z. B. Beschriftung „180 m²“)")
+    ap.add_argument("--modus", default="beide", choices=["beide", "neubau", "nachverdichtung"],
+                    help="Neubau (Abbruch), Nachverdichtung (Bestand erhalten) oder beide")
     ap.add_argument("--breite", type=float, default=20.0, help="Grundstücksbreite an der Straße (m)")
     ap.add_argument("--tiefe", type=float, default=40.0, help="Grundstückstiefe (m)")
     ap.add_argument("--bauweise", default=None, choices=["o", "gk", "ogk", "gr", "g"],
@@ -70,6 +79,7 @@ def main() -> int:
     plan_dateien = []
     flucht = None
     bauweise, bauweise_text = a.bauweise, (f"{a.bauweise} (Eingabe)" if a.bauweise else None)
+    festgesetzte_hoehe = a.hoehe
     strassenbreite, strassenbreite_text = a.strassenbreite, (
         f"{a.strassenbreite} m (Eingabe)" if a.strassenbreite else "unbekannt")
     try:
@@ -79,12 +89,18 @@ def main() -> int:
         if gst is not None:
             try:
                 flucht, fbild, fext = bebauungsplan.lies_fluchtlinien(umriss, kanten, bbox)
+                from PIL import Image as _Img
+                _Img.fromarray(fbild).save(out / "fluchtlinien_roh.png")
+                (out / "fluchtlinien_roh.json").write_text(
+                    __import__("json").dumps({"ext": list(fext), "umriss": umriss, "kanten": sorted(kanten)}))
                 st.protokoll += flucht.protokoll
                 if bauweise is None:
                     if planschrift.verfuegbar():
                         from shapely.geometry import Polygon as _P
                         mitte = _P(umriss).representative_point()
-                        woerter = planschrift.lies_beschriftung(bebauungsplan._rote_linien(fbild), fext)
+                        rot = bebauungsplan._rote_linien(fbild)
+                        woerter = planschrift.lies_beschriftung(rot, fext)
+                        woerter += planschrift.lies_beschriftung(rot, fext, nur_schrift=False)
                         st.protokoll.append("Planbeschriftung: " + ", ".join(
                             sorted({w.text for w in woerter if len(w.text) <= 6})[:40]))
                         gebiet = _P(flucht.flaeche) if flucht.flaeche else None
@@ -92,6 +108,10 @@ def main() -> int:
                         st.protokoll.append(grund)
                         if bw:
                             bauweise, bauweise_text = bw, f"{bw} (aus der Planbeschriftung gelesen, bitte prüfen)"
+                        hoehe, grund_h = planschrift.hoehe_aus_woertern(woerter, mitte.x, mitte.y, gebiet=gebiet)
+                        if hoehe and festgesetzte_hoehe is None:
+                            festgesetzte_hoehe = hoehe
+                            st.protokoll.append(grund_h)
                     else:
                         st.protokoll.append("Texterkennung (tesseract) nicht installiert")
                 if strassenbreite is None and flucht.strassenbreiten:
@@ -114,6 +134,12 @@ def main() -> int:
 
     if bauweise is None:
         bauweise, bauweise_text = "o", "o (Annahme, im Plandokument prüfen)"
+
+    umgebung = None
+    if gst is not None:
+        from shapely.geometry import Polygon
+        umgebung = kontext.hole_kontext(Polygon(umriss))
+        st.protokoll += umgebung.protokoll
     kopf = [
         f"# Bebauungsstudie {a.adresse}",
         "",
@@ -136,7 +162,13 @@ def main() -> int:
         "## Eingaben und Annahmen (im Plandokument nur als Bild, bitte prüfen)",
         "",
         f"- Grundstück: {grund_text}",
-        f"- Bauweise: {bauweise_text}",
+        f"- Bauweise: {bauweise_text}" + (" – gekuppelt gerechnet (Anbau an eine Seitengrenze)"
+                                          if a.gekuppelt and bauweise in ("ogk", "gk") else ""),
+        (f"- Festgesetzte Gebäudehöhe: {festgesetzte_hoehe:.1f} m "
+         + ("(Eingabe)" if a.hoehe else "(aus der Planbeschriftung, bitte prüfen)"))
+        if festgesetzte_hoehe else "- Festgesetzte Gebäudehöhe: keine erkannt (Höhe nach Bauklasse)",
+        f"- Höchstzulässige bebaute Fläche: {a.bebaubar_max:.0f} m² (Eingabe)" if a.bebaubar_max
+        else "- Höchstzulässige bebaute Fläche: keine angegeben",
         f"- Abstand der Fluchtlinien (Straßenbreite): {strassenbreite_text}",
         "- Bebaubare Fläche: " + ("innerhalb der aus dem Planbild erkannten Baufluchtlinien (bitte prüfen)"
                                   if flucht and flucht.flaeche else "pauschal mit Vorgarten 5 m gerechnet"),
@@ -158,12 +190,34 @@ def main() -> int:
         bauklasse=st.bauklasse,
         bauweise=bauweise,
         fluchtlinienabstand=strassenbreite,
+        festgesetzte_hoehe=festgesetzte_hoehe,
+        bebaubare_flaeche_max_m2=a.bebaubar_max,
+        gekuppelt=a.gekuppelt,
         fluchtlinien_flaeche=flucht.flaeche if flucht else None,
         schutzzone=st.schutzzone,
         gartensiedlung=st.gartensiedlung,
         wohngebiet=(st.widmungsklasse == "WO"),
     )
     studie = erstelle_studie(bp)
+    studie.kontext = umgebung
+    nv_text = []
+    if a.modus != "neubau":
+        bestand = [(b.grundriss, b.hoehe) for b in (umgebung.bestand if umgebung else []) if b.am_bauplatz]
+        studie.nachverdichtung = erstelle_nachverdichtung(studie, bestand)
+        if studie.nachverdichtung is not None:
+            nv = studie.nachverdichtung
+            nv_text = (["## Vergleich Neubau und Nachverdichtung", "",
+                        "| | Neubau (Abbruch) | Nachverdichtung (Bestand erhalten) |", "|---|---:|---:|",
+                        f"| BGF gesamt | {studie.werte['BGF m²'].wert:.0f} m² | "
+                        f"{nv.werte['BGF nach Nachverdichtung m²'].wert:.0f} m² |",
+                        f"| davon neu | {studie.werte['BGF m²'].wert:.0f} m² | "
+                        f"{nv.werte['Zusätzliche BGF m²'].wert:.0f} m² |",
+                        f"| Wohnungen neu | {studie.werte['Wohnungen'].wert} | "
+                        f"{nv.werte['Zusätzliche Wohnungen'].wert} |", ""]
+                       + [f"- {n}: {e.wert} – {e.begruendung}" for n, e in nv.werte.items()]
+                       + [f"- Hinweis: {h}" for h in nv.hinweise] + [""])
+        elif a.modus == "nachverdichtung":
+            nv_text = ["## Nachverdichtung", "", "Kein Bestand am Bauplatz im Baukörpermodell gefunden.", ""]
     if st.bausperre:
         studie.hinweise.append("Bausperre am Standort: Bebauung derzeit eingeschränkt.")
     if st.stellplatzzone:
@@ -171,7 +225,7 @@ def main() -> int:
             f"Stellplatzzone {st.stellplatzzone}: mögliche Reduktion der Pflichtstellplätze "
             "nach WGarG § 50a ist noch nicht eingerechnet.")
     dateien = exportiere_alles(studie, out) if "BGF m²" in studie.werte else []
-    text = "\n".join(kopf + ["", "## Ergebnis", "", "```", studie.bericht(), "```", ""]
+    text = "\n".join(kopf + [""] + nv_text + ["## Ergebnis", "", "```", studie.bericht(), "```", ""]
                      + [f"- {p.name}" for p in dateien]
                      + [f"- {Path(p).name}" for p in plan_dateien])
     (out / "ergebnis.md").write_text(text, encoding="utf-8")

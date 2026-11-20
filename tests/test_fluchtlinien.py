@@ -59,3 +59,62 @@ def test_bauweise_aus_woertern():
          Wort("WIo", 9, 5, 70), Wort("gk", 200, 200, 90)]
     bw, text = bauweise_aus_woertern(w, 0, 0)
     assert bw == "o", text
+
+
+def test_schrift_unterbricht_fluchtlinien_nicht():
+    from PIL import Image, ImageDraw, ImageFont
+    from bebauungsstudie.daten.bebauungsplan import trenne_linien_schrift
+    b = _bild()
+    # großes „g“ und „W“ mitten in die Fläche zwischen den Baufluchtlinien
+    img = Image.fromarray(b)
+    d = ImageDraw.Draw(img)
+    try:
+        f = ImageFont.load_default(size=40)
+    except TypeError:
+        f = ImageFont.load_default()
+    d.text((300, 380), "Wg", fill=(255, 0, 0, 255), font=f)
+    b2 = np.asarray(img).copy()
+    rot = (b2[..., 0] > 140) & (b2[..., 1] < 120) & (b2[..., 3] > 80)
+    linien, schrift = trenne_linien_schrift(rot, PX, PX)
+    assert schrift.sum() > 50
+    umriss = [(0, 0), (20, 0), (20, 30), (0, 30)]
+    erg = fluchtlinien_auswerten(b2, EXT, umriss, {0})
+    assert erg.flaeche is not None and abs(Polygon(erg.flaeche).area - 210) < 30, erg.protokoll
+
+
+def test_hoehe_und_bauweise_aus_texten():
+    from bebauungsstudie.daten.planschrift import Wort, bauweise_aus_woertern, hoehe_aus_woertern
+    w = [Wort("10", 1, 1, 90), Wort("105m", 2, 2, 80), Wort("G", 3, 3, 70)]
+    assert bauweise_aus_woertern(w, 0, 0)[0] == "g"
+    assert hoehe_aus_woertern(w, 0, 0)[0] == 10.5
+    assert hoehe_aus_woertern([Wort("10.5m", 0, 0, 90)], 0, 0)[0] == 10.5
+
+
+def test_echter_plan_olbrichgasse():
+    """Aufgezeichneter Ausschnitt Stadt Wien (CC BY 4.0), Olbrichgasse 9."""
+    import json
+    from pathlib import Path
+    from PIL import Image
+    d = Path(__file__).parent / "daten"
+    b = np.asarray(Image.open(d / "olbrichgasse9_flucht.png"))
+    m = json.loads((d / "olbrichgasse9_flucht.json").read_text())
+    erg = fluchtlinien_auswerten(b, m["ext"], [tuple(p) for p in m["umriss"]], set(m["kanten"]))
+    assert erg.flaeche is not None, erg.protokoll
+    imgst = Polygon(erg.flaeche).intersection(Polygon(m["umriss"])).area
+    assert 240 < imgst < 300, erg.protokoll
+    assert 12.0 in erg.strassenbreiten.values()
+
+
+def test_wienerflurgasse40_streifen_um_den_block():
+    """Bauland-Streifen zwischen vorderer und hinterer Baufluchtlinie läuft um den
+    Baublock aus dem Ausschnitt; große Beschriftung („ogk“, „180m²“) darf ihn nicht teilen."""
+    import json
+    from pathlib import Path
+    from PIL import Image
+    d = Path(__file__).parent / "daten"
+    b = np.asarray(Image.open(d / "wienerflurgasse40_flucht.png"))
+    m = json.loads((d / "wienerflurgasse40_flucht.json").read_text())
+    erg = fluchtlinien_auswerten(b, m["ext"], [tuple(p) for p in m["umriss"]], set(m["kanten"]))
+    assert erg.flaeche is not None, erg.protokoll
+    imgst = Polygon(erg.flaeche).intersection(Polygon(m["umriss"])).area
+    assert 190 < imgst < 240, erg.protokoll

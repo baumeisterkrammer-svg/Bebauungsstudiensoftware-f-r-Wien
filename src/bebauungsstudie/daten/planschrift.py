@@ -65,25 +65,23 @@ def zurueck(x: float, y: float, winkel: float, groesse_gedreht, groesse) -> tupl
             cx * math.sin(a) + cy * math.cos(a) + H / 2)
 
 
-def lies_beschriftung(rot_maske: np.ndarray, ext, schritt: int = 15, vergroesserung: int = 3) -> list[Wort]:
-    """Liest rote Beschriftung; Koordinaten der Wortmitten in EPSG:31256."""
+def lies_beschriftung(rot_maske: np.ndarray, ext, schritt: int = 15, vergroesserung: int = 3,
+                      nur_schrift: bool = True) -> list[Wort]:
+    """Liest rote Beschriftung; Koordinaten der Wortmitten in EPSG:31256.
+
+    `nur_schrift`: Linien vorher entfernen. Berührt ein Buchstabe eine Fluchtlinie,
+    wird er dabei mit entfernt (z. B. das „k“ in „ogk“); dann hilft ein zweiter
+    Durchgang auf der ganzen roten Ebene."""
     from PIL import Image
 
     if not verfuegbar():
         return []
-    from scipy import ndimage
-
     h, w = rot_maske.shape
     px, py = (ext[1] - ext[0]) / w, (ext[3] - ext[2]) / h
-    # Linien entfernen: zusammenhängende Teile, die länger als ein Schriftzeichen sind
-    lab, n = ndimage.label(rot_maske, structure=np.ones((3, 3)))
-    schrift = np.zeros_like(rot_maske)
-    for k, sl in enumerate(ndimage.find_objects(lab), start=1):
-        hoehe, breite = (sl[0].stop - sl[0].start) * py, (sl[1].stop - sl[1].start) * px
-        anteil = (lab[sl] == k).mean()
-        if max(hoehe, breite) <= 4.0 and anteil > 0.15:
-            schrift[sl] |= lab[sl] == k
-    rot_maske = schrift
+    if nur_schrift:
+        from .bebauungsplan import trenne_linien_schrift
+
+        _, rot_maske = trenne_linien_schrift(rot_maske, px, py)
     grund = Image.fromarray(np.where(rot_maske, 0, 255).astype(np.uint8))
     grund = grund.resize((w * vergroesserung, h * vergroesserung), Image.NEAREST)
     W, H = grund.size
@@ -108,7 +106,7 @@ def bauweise_aus_woertern(woerter: list[Wort], x: float, y: float, radius: float
     from shapely.geometry import Point
     import re
 
-    muster = re.compile(r"^(?:W|GB|GS|IG)?(?:III|II|IV|VI|I|V|1|l)?(ogk|gk|gr|o|g)$")
+    muster = re.compile(r"^(?:W|GB|GS|IG)?(?:III|II|IV|VI|I|V)?(ogk|gk|gr|o|g|O|G)$")
     kandidaten = []
     for w in woerter:
         t = w.text.strip(".,;:'\"|")
@@ -119,7 +117,7 @@ def bauweise_aus_woertern(woerter: list[Wort], x: float, y: float, radius: float
             d = math.hypot(w.x - x, w.y - y)
             im_gebiet = gebiet is not None and gebiet.buffer(3).contains(Point(w.x, w.y))
             if d <= radius or im_gebiet:
-                kandidaten.append((d, m.group(1), w))
+                kandidaten.append((d, m.group(1).lower(), w))
     if not kandidaten:
         return None, "keine Bauweisen-Beschriftung im Umkreis erkannt"
     # dieselbe Beschriftung wird in mehreren Drehungen gefunden: nach Stimmen gewichten
@@ -130,3 +128,24 @@ def bauweise_aus_woertern(woerter: list[Wort], x: float, y: float, radius: float
     d = min(d for d, bw, _ in kandidaten if bw == bester)
     return bester, (f"Bauweise „{bester}“ aus der Planbeschriftung gelesen "
                     f"({d:.0f} m vom Grundstück, innerhalb derselben Baufluchtlinien)")
+
+
+def hoehe_aus_woertern(woerter: list[Wort], x: float, y: float, radius: float = 20.0, gebiet=None):
+    """Festgesetzte Gebäudehöhe wie „10.5m“ (Bauklasse mit Höhenbegrenzung)."""
+    import re
+
+    from shapely.geometry import Point
+
+    muster = re.compile(r"^(\d{1,2})[.,]?(\d)m$")
+    funde = []
+    for w in woerter:
+        m = muster.match(w.text.strip(".;:'\"|"))
+        if not m:
+            continue
+        d = math.hypot(w.x - x, w.y - y)
+        if d <= radius or (gebiet is not None and gebiet.buffer(3).contains(Point(w.x, w.y))):
+            funde.append((d, float(f"{m.group(1)}.{m.group(2)}")))
+    if not funde:
+        return None, None
+    d, h = min(funde)
+    return h, f"Gebäudehöhe {h:.1f} m aus der Planbeschriftung gelesen ({d:.0f} m vom Grundstück)"

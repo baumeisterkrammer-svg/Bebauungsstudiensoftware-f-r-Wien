@@ -14,7 +14,7 @@ from shapely.geometry import LineString, Polygon
 from shapely.geometry.base import BaseGeometry
 
 from .regeln import umriss
-from .studie import Studie, _kuerzere_seite
+from .studie import Studie, dachgeschoss_grundriss, trakttiefe
 
 
 @dataclass
@@ -38,11 +38,25 @@ class Massenmodell:
     umrisswinkel: float
     strassenkante: LineString
     vorgarten_linie: LineString | None
+    kontext: object | None = None
 
     @property
     def gesamthoehe(self) -> float:
         g = self.geschosse[-1]
         return g.ok_fussboden + g.hoehe
+
+    def lokal_matrix(self) -> tuple[float, float, float, float, float, float]:
+        """Affine Abbildung wie `lokal` als (a, b, d, e, xoff, yoff):
+        u = a·x + b·y + xoff, v = d·x + e·y + yoff."""
+        (x0, y0), (x1, y1) = self.strassenkante.coords[:2]
+        w = math.atan2(y1 - y0, x1 - x0)
+        c, s = math.cos(-w), math.sin(-w)
+        a, b, d, e = c, -s, s, c
+        xoff, yoff = -(a * x0 + b * y0), -(d * x0 + e * y0)
+        bp = affinity.affine_transform(self.bauplatz, [a, b, d, e, xoff, yoff])
+        if bp.centroid.y < 0:
+            d, e, yoff = -d, -e, -yoff
+        return a, b, d, e, xoff, yoff
 
     def lokal(self, geom: BaseGeometry) -> BaseGeometry:
         """In ein lokales System drehen: u entlang der Straße, v ins Grundstück."""
@@ -81,10 +95,10 @@ def erzeuge_modell(studie: Studie) -> Massenmodell:
 
     winkel = umriss.umrisswinkel(bp.gartensiedlung, bp.dachneigung).wert
     dach = umriss.max_dachhoehe(bp.bauklasse, bp.bauweise, bp.wohngebiet).wert
-    trakt = a.trakttiefe or _kuerzere_seite(grundriss)
+    trakt = a.trakttiefe or trakttiefe(bp, grundriss)
     for k, breite in enumerate(w["Dachgeschoße"].wert):
         einzug = (trakt - breite) / 2
-        flaeche = grundriss.buffer(-einzug, join_style="mitre")
+        flaeche = dachgeschoss_grundriss(bp, grundriss, einzug)
         if flaeche.is_empty:
             break
         geschosse.append(
@@ -110,4 +124,5 @@ def erzeuge_modell(studie: Studie) -> Massenmodell:
         umrisswinkel=winkel,
         strassenkante=strasse,
         vorgarten_linie=vg,
+        kontext=studie.kontext,
     )

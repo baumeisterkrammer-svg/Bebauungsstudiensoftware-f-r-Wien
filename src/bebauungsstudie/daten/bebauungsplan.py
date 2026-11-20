@@ -186,6 +186,57 @@ def _rote_linien(bild: np.ndarray) -> np.ndarray:
     return sichtbar & (r > 140) & (g < 120) & (b < 120) & (r - g > 60)
 
 
+def _ist_strich(teil: np.ndarray, px: float, py: float, toleranz: float = 0.45) -> bool:
+    """True für gerade Striche und Strich-Ecken (L-Form), False für Buchstaben.
+
+    Das Skelett eines Strichs hat zwei Enden, keine Verzweigung und lässt sich
+    durch höchstens zwei gerade Stücke annähern. Buchstaben wie W, g, m, 0, 5
+    haben Schleifen, Verzweigungen oder mehrere Knicke."""
+    from scipy import ndimage
+    from shapely.geometry import LineString, MultiPoint
+    from skimage.morphology import skeletonize
+
+    ske = skeletonize(teil, method="lee") > 0
+    if ske.sum() < 2:
+        return True
+    nachbarn = ndimage.convolve(ske.astype(int), np.ones((3, 3), int), mode="constant") - 1
+    enden = np.argwhere(ske & (nachbarn == 1))
+    if len(enden) != 2 or (ske & (nachbarn >= 3)).sum() > 2:
+        return False
+    pts = np.argwhere(ske)[:, ::-1] * np.array([px, py])
+    a, b = enden[0][::-1] * np.array([px, py]), enden[1][::-1] * np.array([px, py])
+    wolke = MultiPoint(pts)
+    gerade = LineString([a, b])
+    abst = np.array([gerade.distance(p) for p in wolke.geoms])
+    if abst.max() <= toleranz:
+        return True
+    c = pts[int(abst.argmax())]
+    knick = LineString([a, c, b])
+    return max(knick.distance(p) for p in wolke.geoms) <= toleranz
+
+
+def trenne_linien_schrift(rot: np.ndarray, px: float, py: float) -> tuple[np.ndarray, np.ndarray]:
+    """Teilt die rote Maske in Linien (Fluchtlinien, Striche) und Schrift.
+
+    Teile länger als 8 m oder kleiner als 3 m² sind Linien; die übrigen
+    werden über ihr Skelett unterschieden (siehe `_ist_strich`)."""
+    from scipy import ndimage
+
+    lab, n = ndimage.label(rot, structure=np.ones((3, 3)))
+    linien = np.zeros_like(rot)
+    schrift = np.zeros_like(rot)
+    for k, sl in enumerate(ndimage.find_objects(lab), start=1):
+        teil = lab[sl] == k
+        # kleine Teile (Striche, Strichecken, Punkte) bleiben Linien, damit
+        # gestrichelte Baufluchtlinien geschlossen bleiben
+        if (max(teil.shape[0] * py, teil.shape[1] * px) > 8.0 or teil.sum() * px * py < 3.0
+                or _ist_strich(teil, px, py)):
+            linien[sl] |= teil
+        else:
+            schrift[sl] |= teil
+    return linien, schrift
+
+
 def fluchtlinien_auswerten(bild: np.ndarray, ext, umriss, strassenkanten,
                            spaltbreite: float = 3.0) -> Fluchtlinien:
     """Erkennt aus dem Fluchtlinien-Bild (rot auf transparent) die Fläche innerhalb
@@ -219,28 +270,44 @@ def fluchtlinien_auswerten(bild: np.ndarray, ext, umriss, strassenkanten,
     scheibe = (xx * xx + yy * yy) <= rad * rad
     # Linien um die halbe Lückenbreite verdicken; die gefundenen Flächen werden
     # danach um dasselbe Maß wieder vergrößert
-    zu = ndimage.binary_dilation(rot, structure=scheibe)
-    lab, anzahl = ndimage.label(~zu)
-    rand = set(np.unique(np.concatenate([lab[0], lab[-1], lab[:, 0], lab[:, -1]]))) - {0}
+    linien_ohne_schrift, _schrift = trenne_linien_schrift(rot, px, py)
+    log.append(f"Linien {linien_ohne_schrift.mean():.1%}, Schrift {_schrift.mean():.1%} der Bildfläche")
 
     cols, rows = np.meshgrid(np.arange(w), np.arange(h))
     gx, gy = welt(cols, rows)
     im_gst = MPath(list(umriss)).contains_points(np.c_[gx.ravel(), gy.ravel()]).reshape(h, w)
     gst_flaeche = SPolygon(umriss).area
     pix = px * py
-    beste, beste_ueb = None, 0.0
-    for k in range(1, anzahl + 1):
-        if k in rand:
-            continue
-        maske = lab == k
-        flaeche = maske.sum() * pix
-        ueb = (maske & im_gst).sum() * pix
-        if ueb > beste_ueb and 5 < flaeche < 3 * gst_flaeche + 3000:
-            beste, beste_ueb = k, ueb
+
+    def beste_flaeche(maske_linien):
+        zu = ndimage.binary_dilation(maske_linien, structure=scheibe)
+        lab, anzahl = ndimage.label(~zu)
+        # Flächen, die breit an den Bildrand stoßen, sind offen (Straßen, Umland).
+        # Ein schmaler Kontakt ist erlaubt: ein Bauland-Streifen kann um den
+        # Baublock herum aus dem Ausschnitt laufen.
+        randpixel = np.concatenate([lab[0], lab[-1], lab[:, 0], lab[:, -1]])
+        kontakt = np.bincount(randpixel, minlength=anzahl + 1)
+        offen = {k for k in range(1, anzahl + 1) if kontakt[k] > 0.06 * randpixel.size}
+        beste, beste_ueb = None, 0.0
+        for k in range(1, anzahl + 1):
+            if k in offen:
+                continue
+            maske = lab == k
+            flaeche = maske.sum() * pix
+            ueb = (maske & im_gst).sum() * pix
+            if ueb > beste_ueb and 5 < flaeche < 3 * gst_flaeche + 3000:
+                beste, beste_ueb = k, ueb
+        return (lab == beste) if beste is not None else None, beste_ueb
+
+    # Zwei Varianten: alle roten Teile als Linien (Schrift kann Flächen teilen)
+    # und ohne Schrift (Strichecken können als Schrift gelten und Lücken öffnen).
+    # Genommen wird die Variante mit der größeren Überdeckung des Grundstücks.
+    varianten = [beste_flaeche(rot), beste_flaeche(linien_ohne_schrift)]
+    maske, ueb = max(varianten, key=lambda v: v[1])
     flaeche_pts = None
-    if beste is not None and beste_ueb > 0.08 * gst_flaeche:
-        linien = contour_generator(z=(lab == beste).astype(float)).lines(0.5)
-        ring = max(linien, key=len)
+    if maske is not None and ueb > 0.08 * gst_flaeche:
+        konturen = contour_generator(z=maske.astype(float)).lines(0.5)
+        ring = max(konturen, key=len)
         pts = [welt(c, r) for c, r in ring]
         poly = SPolygon(pts).buffer(rad * px + 0.1, join_style="mitre").simplify(0.25)
         if poly.geom_type == "Polygon" and poly.area > 10:

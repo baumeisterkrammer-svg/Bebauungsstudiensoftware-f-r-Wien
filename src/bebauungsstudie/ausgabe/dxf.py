@@ -44,6 +44,16 @@ def exportiere_dxf(studie: Studie, mm: Massenmodell, pfad: str | Path) -> Path:
         if g.dachgeschoss:
             for p in _polys(g.flaeche):
                 _poly(msp, p, "DACHGESCHOSS")
+    kt = getattr(mm, "kontext", None)
+    if kt is not None and kt.bestand:
+        doc.layers.add("BESTAND", color=8)
+        for b in kt.bestand:
+            if b.am_bauplatz or b.grundriss.area < 2:
+                continue
+            _poly(msp, b.grundriss, "BESTAND")
+            c = b.grundriss.representative_point()
+            msp.add_text(f"{b.hoehe:.1f}", height=0.8,
+                         dxfattribs={"layer": "BESTAND"}).set_placement((c.x, c.y))
     x0, y0, x1, y1 = mm.bauplatz.bounds
     msp.add_text("LAGEPLAN", height=1.5, dxfattribs={"layer": "TEXT"}).set_placement((x0, y1 + 4))
 
