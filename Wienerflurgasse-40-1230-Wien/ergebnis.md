@@ -36,7 +36,7 @@ Vorabschätzung, keine Rechtsauskunft. Datenquellen: Stadt Wien – data.wien.gv
 - Linien 4.3%, Schrift 1.4% der Bildfläche
 - Baufluchtlinien: geschlossene Fläche 822 m² erkannt, davon 143 m² im Grundstück
 - Straßenkante 0: Abstand der Baulinien ca. 12.0 m (Messungen 12.0, 12.1, 12.0, 12.0, 12.0)
-- Planbeschriftung: %, &, 00, 00%, 09, 2, 2.00, 20, 3, 3°?, 4%, 48o, 5, 5.00, 7), 75., 9, 90, >, AS, C2, G0, N, O02, OO€, Oo, S, Se, Wo, Ye, [0, \, a, a0, ag, go, got, n, oO, oY?
+- Planbeschriftung: "5,00, $/, %, &, -, /, />, />*, /~, /~/, 0-2,, 00, 00%, 00°21, 09, 10S,, 12.00, 2, 2), 2.00, 20, 3, 3°?, 4%, 42.00, 48o, 5, 5,0., 5.00, 6, 7), 75., 8, 9, 90, =, =\, >, AN, AS
 - keine Bauweisen-Beschriftung im Umkreis erkannt
 - Bebauungsplan: Ausschnitt als Bild beigelegt
 - Umgebung: 64 Baukörper im Umkreis von 60 m (Stadt Wien, Baukörpermodell)
