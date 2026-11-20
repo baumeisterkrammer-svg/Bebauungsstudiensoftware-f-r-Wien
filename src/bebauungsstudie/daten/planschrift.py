@@ -65,18 +65,23 @@ def zurueck(x: float, y: float, winkel: float, groesse_gedreht, groesse) -> tupl
             cx * math.sin(a) + cy * math.cos(a) + H / 2)
 
 
-def lies_beschriftung(rot_maske: np.ndarray, ext, schritt: int = 15, vergroesserung: int = 3) -> list[Wort]:
-    """Liest rote Beschriftung; Koordinaten der Wortmitten in EPSG:31256."""
+def lies_beschriftung(rot_maske: np.ndarray, ext, schritt: int = 15, vergroesserung: int = 3,
+                      nur_schrift: bool = True) -> list[Wort]:
+    """Liest rote Beschriftung; Koordinaten der Wortmitten in EPSG:31256.
+
+    `nur_schrift`: Linien vorher entfernen. Berührt ein Buchstabe eine Fluchtlinie,
+    wird er dabei mit entfernt (z. B. das „k“ in „ogk“); dann hilft ein zweiter
+    Durchgang auf der ganzen roten Ebene."""
     from PIL import Image
 
     if not verfuegbar():
         return []
     h, w = rot_maske.shape
     px, py = (ext[1] - ext[0]) / w, (ext[3] - ext[2]) / h
-    from .bebauungsplan import trenne_linien_schrift
+    if nur_schrift:
+        from .bebauungsplan import trenne_linien_schrift
 
-    _, schrift = trenne_linien_schrift(rot_maske, px, py)
-    rot_maske = schrift
+        _, rot_maske = trenne_linien_schrift(rot_maske, px, py)
     grund = Image.fromarray(np.where(rot_maske, 0, 255).astype(np.uint8))
     grund = grund.resize((w * vergroesserung, h * vergroesserung), Image.NEAREST)
     W, H = grund.size

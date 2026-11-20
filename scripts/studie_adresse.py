@@ -92,7 +92,9 @@ def main() -> int:
                     if planschrift.verfuegbar():
                         from shapely.geometry import Polygon as _P
                         mitte = _P(umriss).representative_point()
-                        woerter = planschrift.lies_beschriftung(bebauungsplan._rote_linien(fbild), fext)
+                        rot = bebauungsplan._rote_linien(fbild)
+                        woerter = planschrift.lies_beschriftung(rot, fext)
+                        woerter += planschrift.lies_beschriftung(rot, fext, nur_schrift=False)
                         st.protokoll.append("Planbeschriftung: " + ", ".join(
                             sorted({w.text for w in woerter if len(w.text) <= 6})[:40]))
                         gebiet = _P(flucht.flaeche) if flucht.flaeche else None
