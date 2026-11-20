@@ -16,7 +16,8 @@ Vorabschätzung, keine Rechtsauskunft. Datenquellen: Stadt Wien – data.wien.gv
 
 - Grundstück: KG 01808, Grundstück 87/26: 446 m² laut BEV-Katastralmappe (Stichtag 01.10.2026), Straßenkanten [0]
 - Bauweise: ogk (Eingabe)
-- Festgesetzte Gebäudehöhe: keine erkannt (Höhe nach Bauklasse)
+- Festgesetzte Gebäudehöhe: 6.5 m (Eingabe)
+- Höchstzulässige bebaute Fläche: 180 m² (Eingabe)
 - Abstand der Fluchtlinien (Straßenbreite): 12.0 m (aus dem Planbild gemessen, schmalste angrenzende Straße)
 - Bebaubare Fläche: innerhalb der aus dem Planbild erkannten Baufluchtlinien (bitte prüfen)
 - Besondere Bestimmungen des Plandokuments: nicht berücksichtigt
@@ -33,8 +34,8 @@ Vorabschätzung, keine Rechtsauskunft. Datenquellen: Stadt Wien – data.wien.gv
 - Kataster: KG 01808, Gst. 87/26, 446 m² (BEV DKM Stichtag 01.10.2026, CC BY 4.0)
 - Kataster: Nutzung Gebäude 85 m², Garten 361 m²; Straßenkanten [0]; Nachbargrundstücke 87/25 (450 m²), 89/27 (588 m²), 87/27 (536 m²)
 - Fluchtlinien-Bild: 512×768 px, 0.20 m/px, rote Pixel 5.6%
-- Linien 4.3%, Schrift 1.4% der Bildfläche
-- Baufluchtlinien: geschlossene Fläche 822 m² erkannt, davon 143 m² im Grundstück
+- Linien 4.4%, Schrift 1.3% der Bildfläche
+- Baufluchtlinien: geschlossene Fläche 1856 m² erkannt, davon 215 m² im Grundstück
 - Straßenkante 0: Abstand der Baulinien ca. 12.0 m (Messungen 12.0, 12.1, 12.0, 12.0, 12.0)
 - Bebauungsplan: Ausschnitt als Bild beigelegt
 - Umgebung: 64 Baukörper im Umkreis von 60 m (Stadt Wien, Baukörpermodell)
@@ -44,19 +45,19 @@ Vorabschätzung, keine Rechtsauskunft. Datenquellen: Stadt Wien – data.wien.gv
 
 | | Neubau (Abbruch) | Nachverdichtung (Bestand erhalten) |
 |---|---:|---:|
-| BGF gesamt | 173 m² | 207 m² |
-| davon neu | 173 m² | 120 m² |
-| Wohnungen neu | 1 | 1 |
+| BGF gesamt | 143 m² | 173 m² |
+| davon neu | 143 m² | 86 m² |
+| Wohnungen neu | 1 | 0 |
 
 - Bestand Grundfläche m²: 86.5 – Baukörper am Bauplatz laut Baukörpermodell
 - Bestand BGF m² (geschätzt): 86.5 – Grundfläche × Geschoße (1), aus Höhe / 3.2 m geschätzt
-- Aufstockung BGF m²: 45.4 – Bestand in der bebaubaren Fläche auf 3 Vollgeschoße erhöht
+- Aufstockung BGF m²: 36.5 – Bestand in der bebaubaren Fläche auf 2 Vollgeschoße erhöht
 - Dachgeschoßausbau BGF m²: 0 – Dachgeschoße nach § 81 Abs. 4 über dem voll hohen Baukörper (Bestand + Zubau)
-- Zubau im Hof BGF m²: 74.8 – freie bebaubare Fläche × 3 Vollgeschoße
-- Zusätzliche BGF m²: 120.3 – Aufstockung + Dachgeschoßausbau + Zubau (Differenz zum Bestand)
-- BGF nach Nachverdichtung m²: 206.7 – Bestand + zusätzliche BGF
-- Zusätzliche Wohnungen: 1 – zusätzliche BGF × 0.75 / 65.0 m²
-- Vergleich Neubau BGF m²: 173.1 – Neubau nach Abbruch; Differenz zur Nachverdichtung -34 m²
+- Zubau im Hof BGF m²: 49.8 – freie bebaubare Fläche × 2 Vollgeschoße
+- Zusätzliche BGF m²: 86.3 – Aufstockung + Dachgeschoßausbau + Zubau (Differenz zum Bestand)
+- BGF nach Nachverdichtung m²: 172.8 – Bestand + zusätzliche BGF
+- Zusätzliche Wohnungen: 0 – zusätzliche BGF × 0.75 / 65.0 m²
+- Vergleich Neubau BGF m²: 142.6 – Neubau nach Abbruch; Differenz zur Nachverdichtung -30 m²
 - Hinweis: Aufstockung: Tragfähigkeit von Wänden und Fundamenten, Brandschutz und Erschließung (Lift) des Bestands prüfen.
 - Hinweis: Zubau im Hof: Belichtung der bestehenden Hoffenster und Abstände zum Bestand prüfen.
 - Hinweis: Teile des Bestands liegen außerhalb der bebaubaren Fläche und bleiben unverändert (kein Ausbau dort).
@@ -68,17 +69,17 @@ Vorabschätzung, keine Rechtsauskunft. Datenquellen: Stadt Wien – data.wien.gv
 Bebauungsstudie (Vorabschätzung, keine Rechtsauskunft)
 
 Bauplatzfläche m²: 445.5  [Eingabe Grundstücksgeometrie]  aus Geometrie
-Bebaute Fläche m²: 57.7  [BO für Wien § 79 Abs. 1, 3, Bebauungsplan Baufluchtlinien (§ 5 Abs. 4 BO)]  innerhalb der Baufluchtlinien laut Bebauungsplan, abzüglich Abstandsflächen
-Gebäudehöhe m: 9.0  [BO für Wien § 75 Abs. 2, BO für Wien § 75 Abs. 4]  maßgeblich: Bauklasse I mit 9.0 m
-Vollgeschoße: 3  [BO für Wien § 75 Abs. 2, BO für Wien § 75 Abs. 4]  9.0 m / 3.0 m Geschoßhöhe (Annahme), abgerundet
-Dachgeschoße: []  [BO für Wien § 81 Abs. 1, 4]  Trakttiefe 5.917876777268045 m, Umriss 45.0°, bis 4.5 m über GH: 0 Dachgeschoß(e)
-BGF m²: 173.1  [BO für Wien § 75 Abs. 2, BO für Wien § 75 Abs. 4, BO für Wien § 81 Abs. 4, BO für Wien § 81 Abs. 1]  57.7 m² × 3 Vollgeschoße + 0.0 m² Dachgeschoße
-Nutzfläche m²: 129.8  [Annahme Nutzflächenfaktor]  BGF × 0.75
-Wohnungen: 1  [Annahme Wohnungsgröße]  130 m² / 65.0 m² je Wohnung
+Bebaute Fläche m²: 71.3  [BO für Wien § 79 Abs. 1, 3, Bebauungsplan Baufluchtlinien (§ 5 Abs. 4 BO)]  innerhalb der Baufluchtlinien laut Bebauungsplan, abzüglich Abstandsflächen
+Gebäudehöhe m: 6.5  [BO für Wien § 75 Abs. 2, Bebauungsplan Besondere Bestimmung, BO für Wien § 75 Abs. 4]  maßgeblich: im Bebauungsplan festgesetzte Höhe mit 6.5 m
+Vollgeschoße: 2  [BO für Wien § 75 Abs. 2, Bebauungsplan Besondere Bestimmung, BO für Wien § 75 Abs. 4]  6.5 m / 3.0 m Geschoßhöhe (Annahme), abgerundet
+Dachgeschoße: []  [BO für Wien § 81 Abs. 1, 4]  Trakttiefe 5.989734197878381 m, Umriss 45.0°, bis 5.0 m über GH: 0 Dachgeschoß(e)
+BGF m²: 142.6  [BO für Wien § 75 Abs. 2, Bebauungsplan Besondere Bestimmung, BO für Wien § 75 Abs. 4, BO für Wien § 81 Abs. 4, BO für Wien § 81 Abs. 1]  71.3 m² × 2 Vollgeschoße + 0.0 m² Dachgeschoße
+Nutzfläche m²: 107.0  [Annahme Nutzflächenfaktor]  BGF × 0.75
+Wohnungen: 1  [Annahme Wohnungsgröße]  107 m² / 65.0 m² je Wohnung
 Pflichtstellplätze: 0  [WGarG 2008 § 50]  Kleinhaus mit nur einer Wohneinheit: keine Stellplatzpflicht
-Freifläche m²: 387.9  [BO für Wien § 79]  Bauplatz minus bebaute Fläche
-davon unversiegelt mind. m²: 258.6  [BO für Wien § 79 Abs. 6]  2/3 von 387.9 m² = 258.6 m²
-Bäume: 2  [BO für Wien § 79 Abs. 7]  387.9 m² / 200 m², aufgerundet = 2
+Freifläche m²: 374.2  [BO für Wien § 79]  Bauplatz minus bebaute Fläche
+davon unversiegelt mind. m²: 249.5  [BO für Wien § 79 Abs. 6]  2/3 von 374.2 m² = 249.5 m²
+Bäume: 2  [BO für Wien § 79 Abs. 7]  374.2 m² / 200 m², aufgerundet = 2
 
 Hinweise:
 - Bauweise ogk: Anbau an eine Grenze ist zulässig, hier aber konservativ wie offene Bauweise gerechnet.
@@ -91,13 +92,13 @@ Nachverdichtung (Bestand erhalten)
 
 Bestand Grundfläche m²: 86.5  Baukörper am Bauplatz laut Baukörpermodell
 Bestand BGF m² (geschätzt): 86.5  Grundfläche × Geschoße (1), aus Höhe / 3.2 m geschätzt
-Aufstockung BGF m²: 45.4  Bestand in der bebaubaren Fläche auf 3 Vollgeschoße erhöht
+Aufstockung BGF m²: 36.5  Bestand in der bebaubaren Fläche auf 2 Vollgeschoße erhöht
 Dachgeschoßausbau BGF m²: 0  Dachgeschoße nach § 81 Abs. 4 über dem voll hohen Baukörper (Bestand + Zubau)
-Zubau im Hof BGF m²: 74.8  freie bebaubare Fläche × 3 Vollgeschoße
-Zusätzliche BGF m²: 120.3  Aufstockung + Dachgeschoßausbau + Zubau (Differenz zum Bestand)
-BGF nach Nachverdichtung m²: 206.7  Bestand + zusätzliche BGF
-Zusätzliche Wohnungen: 1  zusätzliche BGF × 0.75 / 65.0 m²
-Vergleich Neubau BGF m²: 173.1  Neubau nach Abbruch; Differenz zur Nachverdichtung -34 m²
+Zubau im Hof BGF m²: 49.8  freie bebaubare Fläche × 2 Vollgeschoße
+Zusätzliche BGF m²: 86.3  Aufstockung + Dachgeschoßausbau + Zubau (Differenz zum Bestand)
+BGF nach Nachverdichtung m²: 172.8  Bestand + zusätzliche BGF
+Zusätzliche Wohnungen: 0  zusätzliche BGF × 0.75 / 65.0 m²
+Vergleich Neubau BGF m²: 142.6  Neubau nach Abbruch; Differenz zur Nachverdichtung -30 m²
 
 Hinweise:
 - Aufstockung: Tragfähigkeit von Wänden und Fundamenten, Brandschutz und Erschließung (Lift) des Bestands prüfen.
